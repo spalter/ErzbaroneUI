@@ -1,13 +1,45 @@
 -- Erzbarone main file
 
--- hide chat buttons
-local function hideChatButtons()
-    ChatFrameChannelButton:Hide()
-    FriendsMicroButton:Hide()
-    ChatFrameMenuButton:Hide()
-    ChatFrame1ButtonFrameUpButton:Hide()
-    ChatFrame1ButtonFrameDownButton:Hide()
-    ChatFrame1ButtonFrameBottomButton:Hide()
+-- Wrapper to set the World Text Scale
+local function setWorldTextScale(value)
+    SetCVar("WorldTextScale", tostring(value))
+end
+
+-- Setup chat buttons mouseover
+local function setupChatButtonsMouseover()
+    local buttons = {
+        ChatFrameChannelButton,
+        FriendsMicroButton,
+        ChatFrameMenuButton,
+        ChatFrame1ButtonFrameUpButton,
+        ChatFrame1ButtonFrameDownButton,
+        ChatFrame1ButtonFrameBottomButton,
+    }
+
+    for _, btn in ipairs(buttons) do
+        if btn then btn:SetAlpha(0) end
+    end
+
+    local anchor = ChatFrame1ButtonFrame
+    anchor:EnableMouse(true)
+    anchor:SetScript("OnEnter", function()
+        for _, btn in ipairs(buttons) do if btn then btn:SetAlpha(1) end end
+    end)
+    anchor:SetScript("OnLeave", function()
+        for _, btn in ipairs(buttons) do if btn then btn:SetAlpha(0) end end
+    end)
+
+    for _, btn in ipairs(buttons) do
+        if btn then
+            btn:EnableMouse(true)
+            btn:SetScript("OnEnter", function()
+                for _, b in ipairs(buttons) do if b then b:SetAlpha(1) end end
+            end)
+            btn:SetScript("OnLeave", function()
+                for _, b in ipairs(buttons) do if b then b:SetAlpha(0) end end
+            end)
+        end
+    end
 end
 
 -- move world map to center
@@ -44,9 +76,6 @@ end
 
 -- Setup minimap to hide zoom buttons and allow mouse wheel zoom
 local function setupMinimap()
-    MinimapZoomIn:Hide()
-    MinimapZoomOut:Hide()
-    GameTimeFrame:Hide()
     Minimap:EnableMouseWheel(true)
     Minimap:SetScript("OnMouseWheel", function(self, delta)
         if delta > 0 then
@@ -55,6 +84,10 @@ local function setupMinimap()
             Minimap_ZoomOut()
         end
     end)
+
+    MinimapZoomIn:Hide()
+    MinimapZoomOut:Hide()
+    GameTimeFrame:Hide()
     MiniMapTracking:ClearAllPoints()
     MiniMapTracking:SetPoint("TOPRIGHT", Minimap, "TOPRIGHT", 0, 0)
 end
@@ -62,27 +95,25 @@ end
 -- Setup interface configuration variables
 local function setupInterfaceConfig()
     TARGET_FRAME_BUFFS_ON_TOP = true
-    DAMAGE_TEXT_FONT = "Fonts\\MORPHEUS.TTF"
+    DAMAGE_TEXT_FONT = "Fonts\\skurri.TTF"
+    COMBAT_TEXT_FONT = "Fonts\\skurri.TTF"
+    setWorldTextScale(0.75)
     SetCVar("cameraDistanceMaxZoomFactor", "4.0")
 end
 
 -- Setup mouseover for vertical bars (MultiBarRight and MultiBarLeft)
 local function setupVerticalBarsMouseover()
-    local bars = {MultiBarRight, MultiBarLeft}
+    local bars = { MultiBarRight, MultiBarLeft }
 
     for _, bar in pairs(bars) do
         if bar then
-            -- Hide each bar by default
             bar:SetAlpha(0)
 
-            -- Show on mouseover of the bar itself
             bar:SetScript("OnEnter", function(self)
-                -- Show both bars when hovering over either
                 MultiBarRight:SetAlpha(1)
                 MultiBarLeft:SetAlpha(1)
             end)
 
-            -- Hide when mouse leaves
             bar:SetScript("OnLeave", function(self)
                 MultiBarRight:SetAlpha(0)
                 MultiBarLeft:SetAlpha(0)
@@ -90,8 +121,7 @@ local function setupVerticalBarsMouseover()
         end
     end
 
-    -- Handle individual buttons for both bars
-    local barNames = {"MultiBarRight", "MultiBarLeft"}
+    local barNames = { "MultiBarRight", "MultiBarLeft" }
     for _, barName in pairs(barNames) do
         for i = 1, 12 do
             local button = _G[barName .. "Button" .. i]
@@ -109,19 +139,17 @@ local function setupVerticalBarsMouseover()
     end
 end
 
-
--- Initialize the addon
-local function initializeAddon()
-    hideChatButtons()
-    moveWorldMapToCenter()
-    moveUnitFrames()
-    hideBagsName()
-    setupMinimap()
-    setupInterfaceConfig()
-    setupVerticalBarsMouseover()
-end
-
 local frame = CreateFrame("Frame")
 frame:RegisterEvent("ADDON_LOADED")
 frame:RegisterEvent("PLAYER_ENTERING_WORLD")
-frame:SetScript("OnEvent", initializeAddon)
+frame:SetScript("OnEvent", function(self, event, name)
+    if name == "ErzbaroneUI" then
+        setupChatButtonsMouseover()
+        moveWorldMapToCenter()
+        hideBagsName()
+        setupMinimap()
+        setupInterfaceConfig()
+        setupVerticalBarsMouseover()
+    end
+    moveUnitFrames()
+end)
