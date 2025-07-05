@@ -41,3 +41,5 @@ luac.out
 
 # Vscode
 .vscode/
+
+build/release.zip
