@@ -1,0 +1,7 @@
+## Interface: 11506, 11507
+## Title: ErzbaroneUI
+## Author: spalt_er
+## Version: 0.1
+## Notes: A World of Warcraft Classic Era Interface
+
+main.lua
