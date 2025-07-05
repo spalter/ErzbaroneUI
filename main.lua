@@ -68,10 +68,10 @@ end
 -- Move unit frames to the bottom of the screen
 local function moveUnitFrames()
     PlayerFrame:ClearAllPoints()
-    PlayerFrame:SetPoint("BOTTOM", UIParent, "BOTTOM", -250, 150)
+    PlayerFrame:SetPoint("BOTTOM", UIParent, "BOTTOM", -300, 150)
 
     TargetFrame:ClearAllPoints()
-    TargetFrame:SetPoint("BOTTOM", UIParent, "BOTTOM", 250, 150)
+    TargetFrame:SetPoint("BOTTOM", UIParent, "BOTTOM", 300, 150)
 end
 
 -- Setup minimap to hide zoom buttons and allow mouse wheel zoom
@@ -90,6 +90,73 @@ local function setupMinimap()
     GameTimeFrame:Hide()
     MiniMapTracking:ClearAllPoints()
     MiniMapTracking:SetPoint("TOPRIGHT", Minimap, "TOPRIGHT", 0, 0)
+end
+
+-- Move minimap buttons to the bottom-right of the minimap (mostly for LibDBIcon buttons from other addons)
+local function MoveMinimapButtons()
+    local function RepositionButtons()
+        local foundButtons = {}
+
+        local LibDBIcon = LibStub and LibStub:GetLibrary("LibDBIcon-1.0", true)
+        if LibDBIcon then
+            for name, button in pairs(LibDBIcon.objects) do
+                if button and button:IsVisible() then
+                    table.insert(foundButtons, button)
+                end
+            end
+        end
+
+        local commonNames = {
+            "LibDBIcon10_",
+            "MinimapButton",
+            "DeathLogMinimapButton",
+            "NovaWorldBuffsMinimapButton",
+            "NWBMinimapButton"
+        }
+
+        for _, child in pairs({ Minimap:GetChildren() }) do
+            if child and child:GetObjectType() == "Button" and child:IsVisible() then
+                local name = child:GetName()
+                if name then
+                    -- Check if it's a LibDBIcon button
+                    for _, pattern in pairs(commonNames) do
+                        if string.find(name, pattern) then
+                            local alreadyFound = false
+                            for _, existing in pairs(foundButtons) do
+                                if existing == child then
+                                    alreadyFound = true
+                                    break
+                                end
+                            end
+                            if not alreadyFound then
+                                table.insert(foundButtons, child)
+                            end
+                            break
+                        end
+                    end
+                end
+            end
+        end
+
+        if #foundButtons > 0 then
+            local radius = 80
+            local startAngle = -math.pi / 6
+            local angleSpacing = math.pi / 7
+
+            for i, button in ipairs(foundButtons) do
+                button:ClearAllPoints()
+                local angle = startAngle - ((i - 1) * angleSpacing)
+                local x = radius * math.cos(angle)
+                local y = radius * math.sin(angle)
+                button:SetPoint("CENTER", Minimap, "CENTER", x, y)
+            end
+        end
+    end
+
+    -- Multiple attempts to catch all buttons
+    C_Timer.After(1, RepositionButtons)
+    C_Timer.After(3, RepositionButtons)
+    C_Timer.After(5, RepositionButtons)
 end
 
 -- Setup interface configuration variables
@@ -152,4 +219,11 @@ frame:SetScript("OnEvent", function(self, event, name)
         setupVerticalBarsMouseover()
     end
     moveUnitFrames()
+
+    C_Timer.After(0.5, function()
+        local LibDBIcon = LibStub and LibStub:GetLibrary("LibDBIcon-1.0", true)
+        if LibDBIcon then
+            MoveMinimapButtons()
+        end
+    end)
 end)
