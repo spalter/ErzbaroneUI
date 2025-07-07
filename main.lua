@@ -119,15 +119,15 @@ local function replaceTargetFrameWithTexture()
 
         if classification == "elite" then
             TargetFrameTextureFrameTexture:SetTexture(
-            "Interface\\AddOns\\ErzbaroneUI\\textures\\UI-TargetingFrame-Elite")
+                "Interface\\AddOns\\ErzbaroneUI\\textures\\UI-TargetingFrame-Elite")
         elseif classification == "rareelite" then
             TargetFrameTextureFrameTexture:SetTexture(
-            "Interface\\AddOns\\ErzbaroneUI\\textures\\UI-TargetingFrame-RareElite")
+                "Interface\\AddOns\\ErzbaroneUI\\textures\\UI-TargetingFrame-RareElite")
         elseif classification == "rare" then
             TargetFrameTextureFrameTexture:SetTexture("Interface\\AddOns\\ErzbaroneUI\\textures\\UI-TargetingFrame-Rare")
         elseif classification == "worldboss" then
             TargetFrameTextureFrameTexture:SetTexture(
-            "Interface\\AddOns\\ErzbaroneUI\\textures\\UI-TargetingFrame-WorldBoss")
+                "Interface\\AddOns\\ErzbaroneUI\\textures\\UI-TargetingFrame-WorldBoss")
         else
             TargetFrameTextureFrameTexture:SetTexture("Interface\\AddOns\\ErzbaroneUI\\textures\\UI-TargetingFrame")
         end
@@ -175,6 +175,11 @@ local function setupMinimap()
         end
     end)
 
+    if MiniMapMailFrame then
+        MiniMapMailFrame:ClearAllPoints()
+        MiniMapMailFrame:SetPoint("TOPRIGHT", Minimap, "TOPRIGHT", 20, -30)
+    end
+
     MinimapZoomIn:Hide()
     MinimapZoomOut:Hide()
     GameTimeFrame:Hide()
@@ -184,8 +189,10 @@ end
 
 -- Move minimap buttons to the bottom-right of the minimap (mostly for LibDBIcon buttons from other addons)
 local function MoveMinimapButtons()
+    local foundButtons = {}
+
     local function RepositionButtons()
-        local foundButtons = {}
+        foundButtons = {}
 
         local LibDBIcon = LibStub and LibStub:GetLibrary("LibDBIcon-1.0", true)
         if LibDBIcon then
@@ -239,14 +246,63 @@ local function MoveMinimapButtons()
                 local x = radius * math.cos(angle)
                 local y = radius * math.sin(angle)
                 button:SetPoint("CENTER", Minimap, "CENTER", x, y)
+                button:SetAlpha(0)
             end
         end
     end
 
-    -- Multiple attempts to catch all buttons
-    C_Timer.After(1, RepositionButtons)
-    C_Timer.After(3, RepositionButtons)
-    C_Timer.After(5, RepositionButtons)
+
+    -- Setup minimap hover functionality
+    local function SetupMinimapHover()
+        -- Hook individual button events to keep them visible
+        for _, button in ipairs(foundButtons) do
+            if button then
+                button:HookScript("OnEnter", function()
+                    for _, btn in ipairs(foundButtons) do
+                        if btn then
+                            btn:SetAlpha(1)
+                        end
+                    end
+                end)
+
+                button:HookScript("OnLeave", function()
+                    C_Timer.After(0.1, function()
+                        local mouseOver = false
+
+                        -- Check if mouse is over any button or minimap area
+                        for _, btn in ipairs(foundButtons) do
+                            if btn and btn:IsMouseOver() then
+                                mouseOver = true
+                                break
+                            end
+                        end
+
+                        if not mouseOver then
+                            for _, btn in ipairs(foundButtons) do
+                                if btn then
+                                    btn:SetAlpha(0)
+                                end
+                            end
+                        end
+                    end)
+                end)
+            end
+        end
+    end
+
+    -- Multiple attempts to catch all buttons and setup hover
+    C_Timer.After(1, function()
+        RepositionButtons()
+        SetupMinimapHover()
+    end)
+    C_Timer.After(3, function()
+        RepositionButtons()
+        SetupMinimapHover()
+    end)
+    C_Timer.After(5, function()
+        RepositionButtons()
+        SetupMinimapHover()
+    end)
 end
 
 -- Setup interface configuration variables
@@ -314,7 +370,7 @@ end
 
 frame:SetScript("OnEvent", function(self, event, name)
     -- Handle one time setup for the addon
-    if event == "PLAYER_ENTERING_WORLD" then
+    if event == "PLAYER_ENTERING_WORLD" or event == "ADDON_LOADED" then
         setupChatButtonsMouseover()
         moveWorldMapToCenter()
         hideBagsName()
