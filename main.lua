@@ -65,6 +65,96 @@ local function hideBagsName()
     ContainerFrame11Name:Hide()
 end
 
+-- Update the player frame health bar color based on the player's class
+local function updatePlayerFrameHealthBarColor()
+    local _, playerClass = UnitClass("player")
+    local color = RAID_CLASS_COLORS[playerClass]
+
+    if PlayerFrameHealthBar then
+        PlayerFrameHealthBar:SetStatusBarColor(color.r, color.g, color.b)
+    end
+end
+
+-- Update the target frame health bar color based on the target's class
+local function updateTargetFrameHealthBarColor()
+    local _, targetClass = UnitClass("target")
+    local color = RAID_CLASS_COLORS[targetClass]
+
+    if TargetFrameHealthBar then
+        TargetFrameHealthBar:SetStatusBarColor(color.r, color.g, color.b)
+    end
+end
+
+-- Replace default PlayerFrame with a custom player frame texture
+local function replacePlayerFrameWithTexture()
+    if PlayerFrameTexture then
+        PlayerFrameTexture:SetTexture("Interface\\AddOns\\ErzbaroneUI\\textures\\UI-TargetingFrame")
+    end
+
+    if PlayerFrameHealthBar then
+        PlayerFrameHealthBar:ClearAllPoints()
+        C_Timer.After(0.1, function()
+            PlayerFrameHealthBar:SetPoint("TOPLEFT", PlayerFrame, "TOPLEFT", 106, -22)
+            PlayerFrameHealthBar:SetHeight(30)
+            PlayerFrameHealthBarText:ClearAllPoints()
+            PlayerFrameHealthBarText:SetPoint("CENTER", PlayerFrameHealthBar, "CENTER", 0, -6)
+            updatePlayerFrameHealthBarColor()
+        end)
+
+        PlayerFrameHealthBar:HookScript("OnValueChanged", function(self, value)
+            updatePlayerFrameHealthBarColor()
+        end)
+    end
+
+
+    if PlayerStatusTexture then
+        PlayerStatusTexture:SetTexture("Interface\\AddOns\\ErzbaroneUI\\textures\\UI-Player-Status")
+    end
+end
+
+-- Replace default TargetFrame with a custom target frame texture
+local function replaceTargetFrameWithTexture()
+    if TargetFrame then
+        local classification = UnitClassification("target")
+
+        if classification == "elite" then
+            TargetFrameTextureFrameTexture:SetTexture(
+            "Interface\\AddOns\\ErzbaroneUI\\textures\\UI-TargetingFrame-Elite")
+        elseif classification == "rareelite" then
+            TargetFrameTextureFrameTexture:SetTexture(
+            "Interface\\AddOns\\ErzbaroneUI\\textures\\UI-TargetingFrame-RareElite")
+        elseif classification == "rare" then
+            TargetFrameTextureFrameTexture:SetTexture("Interface\\AddOns\\ErzbaroneUI\\textures\\UI-TargetingFrame-Rare")
+        elseif classification == "worldboss" then
+            TargetFrameTextureFrameTexture:SetTexture(
+            "Interface\\AddOns\\ErzbaroneUI\\textures\\UI-TargetingFrame-WorldBoss")
+        else
+            TargetFrameTextureFrameTexture:SetTexture("Interface\\AddOns\\ErzbaroneUI\\textures\\UI-TargetingFrame")
+        end
+
+        TargetFrameNameBackground:SetAlpha(0)
+
+        if TargetFrameBackground then
+            TargetFrameBackground:SetHeight(42)
+        end
+
+        if TargetFrameHealthBar then
+            TargetFrameHealthBar:ClearAllPoints()
+            TargetFrameHealthBar:SetPoint("TOPLEFT", TargetFrame, "TOPLEFT", 6, -22)
+            TargetFrameHealthBar:SetHeight(30)
+            if TargetFrameHealthBarText then
+                TargetFrameHealthBarText:ClearAllPoints()
+                TargetFrameHealthBarText:SetPoint("CENTER", TargetFrameHealthBar, "CENTER", 0, -6)
+            end
+            updateTargetFrameHealthBarColor()
+
+            TargetFrameHealthBar:HookScript("OnValueChanged", function(self, value)
+                updateTargetFrameHealthBarColor()
+            end)
+        end
+    end
+end
+
 -- Move unit frames to the bottom of the screen
 local function moveUnitFrames()
     PlayerFrame:ClearAllPoints()
@@ -206,24 +296,54 @@ local function setupVerticalBarsMouseover()
     end
 end
 
+-- Main event handling
+local eventHooks = {
+    "ADDON_LOADED",
+    "PLAYER_ENTERING_WORLD",
+    "PLAYER_TARGET_CHANGED",
+    "UNIT_HEALTH",
+    "UNIT_HEALTH_FREQUENT",
+    "PLAYER_REGEN_DISABLED",
+    "PLAYER_REGEN_ENABLED",
+}
+
 local frame = CreateFrame("Frame")
-frame:RegisterEvent("ADDON_LOADED")
-frame:RegisterEvent("PLAYER_ENTERING_WORLD")
+for _, event in ipairs(eventHooks) do
+    frame:RegisterEvent(event)
+end
+
 frame:SetScript("OnEvent", function(self, event, name)
-    if name == "ErzbaroneUI" then
+    -- Handle one time setup for the addon
+    if event == "PLAYER_ENTERING_WORLD" then
         setupChatButtonsMouseover()
         moveWorldMapToCenter()
         hideBagsName()
         setupMinimap()
         setupInterfaceConfig()
         setupVerticalBarsMouseover()
-    end
-    moveUnitFrames()
+        replacePlayerFrameWithTexture()
+        moveUnitFrames()
 
-    C_Timer.After(0.5, function()
-        local LibDBIcon = LibStub and LibStub:GetLibrary("LibDBIcon-1.0", true)
-        if LibDBIcon then
-            MoveMinimapButtons()
+        C_Timer.After(0.5, function()
+            local LibDBIcon = LibStub and LibStub:GetLibrary("LibDBIcon-1.0", true)
+            if LibDBIcon then
+                MoveMinimapButtons()
+            end
+        end)
+    end
+
+    -- Handle player target changes
+    if event == "PLAYER_TARGET_CHANGED" then
+        if UnitExists("target") then
+            replaceTargetFrameWithTexture()
         end
-    end)
+    end
+
+    -- Handle Player health changes, to keep the health bar color updated
+    if event == "UNIT_HEALTH" or event == "UNIT_HEALTH_FREQUENT" then
+        local unit = name or "player"
+        if unit == "player" then
+            updatePlayerFrameHealthBarColor()
+        end
+    end
 end)

@@ -4,8 +4,8 @@ A reduced World of Warcraft Classic Era Interface
 
 ## Features
 
+- Improved UnitFrames
 - Bag Names removed
-- Unitframes centered
 - Minimap zoom with mouse scroll and removed clutter
 - Chat buttons only on mouse over
 - Vertical actions bars only on mouse over
@@ -27,3 +27,7 @@ I'm using the addon with a few other that worked well to complete the experience
 - Classic Bag Search
 - Questie
 - Wide Quest Log Plus
+
+## Credits
+
+- [UnitFramesImproved](https://github.com/kiforsbe/UnitFramesImproved) for the UnitFrame Textures
