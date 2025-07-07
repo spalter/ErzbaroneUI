@@ -1,6 +1,6 @@
 if not ErzbaroneUI then
     ErzbaroneUI = {}
-end 
+end
 
 ErzbaroneUI.Config = {}
 

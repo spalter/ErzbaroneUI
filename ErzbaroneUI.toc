@@ -12,6 +12,7 @@ modules\worldmap.lua
 modules\minimap.lua
 modules\frames.lua
 modules\config.lua
+modules\flag.lua
 
 # Core
 main.lua
