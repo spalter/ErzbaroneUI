@@ -5,7 +5,6 @@ end
 ErzbaroneUI.Bags = {}
 
 function ErzbaroneUI.Bags:Initialize()
-    print("ErzbaroneUI Bags Module Initialized")
     ErzbaroneUI.Bags:HideNames()
 end
 

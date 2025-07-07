@@ -5,7 +5,6 @@ end
 ErzbaroneUI.Minimap = {}
 
 function ErzbaroneUI.Minimap:Initialize()
-    print("ErzbaroneUI Frames Module Initialized")
     ErzbaroneUI.Minimap:Setup()
 end
 
@@ -19,16 +18,20 @@ function ErzbaroneUI.Minimap:Setup()
         end
     end)
 
-    if MiniMapMailFrame then
-        MiniMapMailFrame:ClearAllPoints()
-        MiniMapMailFrame:SetPoint("TOPRIGHT", Minimap, "TOPRIGHT", 20, -30)
+    local minimapMailFrame = _G["MiniMapMailFrame"]
+    if minimapMailFrame then
+        minimapMailFrame:ClearAllPoints()
+        minimapMailFrame:SetPoint("TOPRIGHT", Minimap, "TOPRIGHT", 20, -30)
     end
 
-    MinimapZoomIn:Hide()
-    MinimapZoomOut:Hide()
+    local minimapZoomIn = _G["MinimapZoomIn"]
+    local minimapZoomOut = _G["MinimapZoomOut"]
+    local minimapTracking = _G["MiniMapTracking"]
+    minimapZoomIn:Hide()
+    minimapZoomOut:Hide()
     GameTimeFrame:Hide()
-    MiniMapTracking:ClearAllPoints()
-    MiniMapTracking:SetPoint("TOPRIGHT", Minimap, "TOPRIGHT", 0, 0)
+    minimapTracking:ClearAllPoints()
+    minimapTracking:SetPoint("TOPRIGHT", Minimap, "TOPRIGHT", 0, 0)
 end
 
 function ErzbaroneUI.Minimap:MoveButtons()

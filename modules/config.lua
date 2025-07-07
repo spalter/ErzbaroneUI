@@ -5,7 +5,6 @@ end
 ErzbaroneUI.Config = {}
 
 function ErzbaroneUI.Config:Initialize()
-    print("ErzbaroneUI Config Module Initialized")
     ErzbaroneUI.Config:Setup()
 end
 

@@ -5,7 +5,6 @@ end
 ErzbaroneUI.Frames = {}
 
 function ErzbaroneUI.Frames:Initialize()
-    print("ErzbaroneUI Frames Module Initialized")
     ErzbaroneUI.Frames:CenterFrames()
     ErzbaroneUI.Frames:ReplacePlayerFrame()
 end
@@ -19,67 +18,72 @@ function ErzbaroneUI.Frames:CenterFrames()
 end
 
 function ErzbaroneUI.Frames:ReplacePlayerFrame()
-    if PlayerFrameTexture then
-        PlayerFrameTexture:SetTexture("Interface\\AddOns\\ErzbaroneUI\\textures\\UI-TargetingFrame")
+    local playerFrameTexture = _G["PlayerFrameTexture"]
+    if playerFrameTexture then
+        playerFrameTexture:SetTexture("Interface\\AddOns\\ErzbaroneUI\\textures\\UI-TargetingFrame")
     end
 
-    if PlayerFrameHealthBar then
-        PlayerFrameHealthBar:ClearAllPoints()
+    local playerFrameHealthBar = _G["PlayerFrameHealthBar"]
+    local playerFrameHealthBarText = _G["PlayerFrameHealthBarText"]
+    if playerFrameHealthBar then
+        playerFrameHealthBar:ClearAllPoints()
         C_Timer.After(0.1, function()
-            PlayerFrameHealthBar:SetPoint("TOPLEFT", PlayerFrame, "TOPLEFT", 106, -22)
-            PlayerFrameHealthBar:SetHeight(30)
-            PlayerFrameHealthBarText:ClearAllPoints()
-            PlayerFrameHealthBarText:SetPoint("CENTER", PlayerFrameHealthBar, "CENTER", 0, -6)
+            playerFrameHealthBar:SetPoint("TOPLEFT", PlayerFrame, "TOPLEFT", 106, -22)
+            playerFrameHealthBar:SetHeight(30)
+            playerFrameHealthBarText:ClearAllPoints()
+            playerFrameHealthBarText:SetPoint("CENTER", playerFrameHealthBar, "CENTER", 0, -6)
             ErzbaroneUI.Frames:UpdatePlayerHealthColor()
         end)
 
-        PlayerFrameHealthBar:HookScript("OnValueChanged", function(self, value)
+        playerFrameHealthBar:HookScript("OnValueChanged", function(self, value)
             ErzbaroneUI.Frames:UpdatePlayerHealthColor()
         end)
     end
 
-
-    if PlayerStatusTexture then
-        PlayerStatusTexture:SetTexture("Interface\\AddOns\\ErzbaroneUI\\textures\\UI-Player-Status")
+    local playerStatusTexture = _G["PlayerStatusTexture"]
+    if playerStatusTexture then
+        playerStatusTexture:SetTexture("Interface\\AddOns\\ErzbaroneUI\\textures\\UI-Player-Status")
     end
 end
 
 function ErzbaroneUI.Frames:ReplaceTargetFrame()
     if TargetFrame then
         local classification = UnitClassification("target")
+        local targetFrameTexture = _G["TargetFrameTextureFrameTexture"]
 
         if classification == "elite" then
-            TargetFrameTextureFrameTexture:SetTexture(
-                "Interface\\AddOns\\ErzbaroneUI\\textures\\UI-TargetingFrame-Elite")
+            targetFrameTexture:SetTexture("Interface\\AddOns\\ErzbaroneUI\\textures\\UI-TargetingFrame-Elite")
         elseif classification == "rareelite" then
-            TargetFrameTextureFrameTexture:SetTexture(
-                "Interface\\AddOns\\ErzbaroneUI\\textures\\UI-TargetingFrame-RareElite")
+            targetFrameTexture:SetTexture("Interface\\AddOns\\ErzbaroneUI\\textures\\UI-TargetingFrame-RareElite")
         elseif classification == "rare" then
-            TargetFrameTextureFrameTexture:SetTexture("Interface\\AddOns\\ErzbaroneUI\\textures\\UI-TargetingFrame-Rare")
+            targetFrameTexture:SetTexture("Interface\\AddOns\\ErzbaroneUI\\textures\\UI-TargetingFrame-Rare")
         elseif classification == "worldboss" then
-            TargetFrameTextureFrameTexture:SetTexture(
-                "Interface\\AddOns\\ErzbaroneUI\\textures\\UI-TargetingFrame-WorldBoss")
+            targetFrameTexture:SetTexture("Interface\\AddOns\\ErzbaroneUI\\textures\\UI-TargetingFrame-WorldBoss")
         else
-            TargetFrameTextureFrameTexture:SetTexture("Interface\\AddOns\\ErzbaroneUI\\textures\\UI-TargetingFrame")
+            targetFrameTexture:SetTexture("Interface\\AddOns\\ErzbaroneUI\\textures\\UI-TargetingFrame")
         end
 
-        TargetFrameNameBackground:SetAlpha(0)
+        local targetFrameNameBackground = _G["TargetFrameNameBackground"]
+        targetFrameNameBackground:SetAlpha(0)
 
-        if TargetFrameBackground then
-            TargetFrameBackground:SetHeight(42)
+        local targetFrameBackground = _G["TargetFrameBackground"]
+        if targetFrameBackground then
+            targetFrameBackground:SetHeight(42)
         end
 
-        if TargetFrameHealthBar then
-            TargetFrameHealthBar:ClearAllPoints()
-            TargetFrameHealthBar:SetPoint("TOPLEFT", TargetFrame, "TOPLEFT", 6, -22)
-            TargetFrameHealthBar:SetHeight(30)
-            if TargetFrameHealthBarText then
-                TargetFrameHealthBarText:ClearAllPoints()
-                TargetFrameHealthBarText:SetPoint("CENTER", TargetFrameHealthBar, "CENTER", 0, -6)
+        local targetFrameHealthBar = _G["TargetFrameHealthBar"]
+        local targetFrameHealthBarText = _G["TargetFrameHealthBarText"]
+        if targetFrameHealthBar then
+            targetFrameHealthBar:ClearAllPoints()
+            targetFrameHealthBar:SetPoint("TOPLEFT", TargetFrame, "TOPLEFT", 6, -22)
+            targetFrameHealthBar:SetHeight(30)
+            if targetFrameHealthBarText then
+                targetFrameHealthBarText:ClearAllPoints()
+                targetFrameHealthBarText:SetPoint("CENTER", targetFrameHealthBar, "CENTER", 0, -6)
             end
             ErzbaroneUI.Frames:UpdateTargetHealthColor()
 
-            TargetFrameHealthBar:HookScript("OnValueChanged", function(self, value)
+            targetFrameHealthBar:HookScript("OnValueChanged", function(self, value)
                 ErzbaroneUI.Frames:UpdateTargetHealthColor()
             end)
         end
@@ -90,8 +94,9 @@ function ErzbaroneUI.Frames:UpdatePlayerHealthColor()
     local _, playerClass = UnitClass("player")
     local color = RAID_CLASS_COLORS[playerClass]
 
-    if PlayerFrameHealthBar then
-        PlayerFrameHealthBar:SetStatusBarColor(color.r, color.g, color.b)
+    local playerFrameHealthBar = _G["PlayerFrameHealthBar"]
+    if playerFrameHealthBar then
+        playerFrameHealthBar:SetStatusBarColor(color.r, color.g, color.b)
     end
 end
 
@@ -99,7 +104,8 @@ function ErzbaroneUI.Frames:UpdateTargetHealthColor()
     local _, targetClass = UnitClass("target")
     local color = RAID_CLASS_COLORS[targetClass]
 
-    if TargetFrameHealthBar then
-        TargetFrameHealthBar:SetStatusBarColor(color.r, color.g, color.b)
+    local targetFrameHealthBar = _G["TargetFrameHealthBar"]
+    if targetFrameHealthBar then
+        targetFrameHealthBar:SetStatusBarColor(color.r, color.g, color.b)
     end
 end

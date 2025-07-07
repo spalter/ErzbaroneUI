@@ -5,7 +5,6 @@ end
 ErzbaroneUI.Bars = {}
 
 function ErzbaroneUI.Bars:Initialize()
-    print("ErzbaroneUI Bars Module Initialized")
     ErzbaroneUI.Bars:SetupVerticalBarsMouseover()
 end
 

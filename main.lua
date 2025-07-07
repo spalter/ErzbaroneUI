@@ -24,9 +24,9 @@ frame:SetScript("OnEvent", function(self, event, name)
 
     -- Handle one time setup for the addon
     if event == "PLAYER_ENTERING_WORLD" then
-        ErzbaroneUI.Chat.Initialize()
-        ErzbaroneUI.WorldMap.Initialize()
-        ErzbaroneUI.Bags.Initialize()
+        ErzbaroneUI.Chat:Initialize()
+        ErzbaroneUI.WorldMap:Initialize()
+        ErzbaroneUI.Bags:Initialize()
         ErzbaroneUI.Frames:Initialize()
         ErzbaroneUI.Bars:Initialize()
         ErzbaroneUI.Minimap:Initialize()
