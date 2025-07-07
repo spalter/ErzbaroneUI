@@ -3,6 +3,7 @@ ErzbaroneUI = ErzbaroneUI or {}
 
 -- Main event handling
 local eventHooks = {
+    "ADDON_LOADED",
     "PLAYER_ENTERING_WORLD",
     "PLAYER_TARGET_CHANGED",
     "UNIT_HEALTH",
@@ -17,6 +18,10 @@ for _, event in ipairs(eventHooks) do
 end
 
 frame:SetScript("OnEvent", function(self, event, name)
+    if event == "ADDON_LOADED" and name == "ErzbaroneUI" then
+        ErzbaroneUI.Config:SetDamageFont()
+    end
+
     -- Handle one time setup for the addon
     if event == "PLAYER_ENTERING_WORLD" then
         ErzbaroneUI.Config:Initialize()
