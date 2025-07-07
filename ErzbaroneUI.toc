@@ -4,4 +4,14 @@
 ## Version: 0.1
 ## Notes: A World of Warcraft Classic Era Interface
 
+# Modules
+modules\chat.lua
+modules\bars.lua
+modules\bags.lua
+modules\worldmap.lua
+modules\minimap.lua
+modules\frames.lua
+modules\config.lua
+
+# Core
 main.lua

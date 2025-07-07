@@ -1,0 +1,18 @@
+if not ErzbaroneUI then
+    ErzbaroneUI = {}
+end 
+
+ErzbaroneUI.Config = {}
+
+function ErzbaroneUI.Config:Initialize()
+    print("ErzbaroneUI Config Module Initialized")
+    ErzbaroneUI.Config:Setup()
+end
+
+function ErzbaroneUI.Config:Setup()
+    TARGET_FRAME_BUFFS_ON_TOP = true
+    DAMAGE_TEXT_FONT = "Fonts\\skurri.TTF"
+    COMBAT_TEXT_FONT = "Fonts\\skurri.TTF"
+    SetCVar("WorldTextScale", tostring(0.75))
+    SetCVar("cameraDistanceMaxZoomFactor", "4.0")
+end
