@@ -4,10 +4,12 @@ end
 
 ErzbaroneUI.Chat = {}
 
+-- Initializes the chat modifications.
 function ErzbaroneUI.Chat:Initialize()
     ErzbaroneUI.Chat:Setup()
 end
 
+-- Sets up the chat frame buttons to be hidden by default and shown on mouseover.
 function ErzbaroneUI.Chat:Setup()
     local buttonNames = {
         "ChatFrameChannelButton",

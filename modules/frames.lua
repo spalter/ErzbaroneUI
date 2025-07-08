@@ -4,11 +4,14 @@ end
 
 ErzbaroneUI.Frames = {}
 
+--- Initializes the frame modifications.
 function ErzbaroneUI.Frames:Initialize()
     ErzbaroneUI.Frames:CenterFrames()
     ErzbaroneUI.Frames:ReplacePlayerFrame()
+    ErzbaroneUI.Frames:InitializeTargetFrameHooks()
 end
 
+--- Repositions the Player and Target frames to the bottom center of the screen.
 function ErzbaroneUI.Frames:CenterFrames()
     PlayerFrame:ClearAllPoints()
     PlayerFrame:SetPoint("BOTTOM", UIParent, "BOTTOM", -300, 150)
@@ -17,6 +20,8 @@ function ErzbaroneUI.Frames:CenterFrames()
     TargetFrame:SetPoint("BOTTOM", UIParent, "BOTTOM", 300, 150)
 end
 
+--- Customizes the appearance of the Player frame.
+--- Replaces textures, repositions the health bar, and updates colors.
 function ErzbaroneUI.Frames:ReplacePlayerFrame()
     local playerFrameTexture = _G["PlayerFrameTexture"]
     if playerFrameTexture then
@@ -46,6 +51,21 @@ function ErzbaroneUI.Frames:ReplacePlayerFrame()
     end
 end
 
+--- Initializes hooks for the Target frame.
+--- Specifically, it hooks the health bar to update its color on value change.
+function ErzbaroneUI.Frames:InitializeTargetFrameHooks()
+    C_Timer.After(0.1, function()
+        local targetFrameHealthBar = _G["TargetFrameHealthBar"]
+        if targetFrameHealthBar then
+            targetFrameHealthBar:HookScript("OnValueChanged", function(self, value)
+                ErzbaroneUI.Frames:UpdateTargetHealthColor()
+            end)
+        end
+    end)
+end
+
+--- Customizes the appearance of the Target frame.
+--- Replaces textures based on classification, repositions the health bar, and updates colors.
 function ErzbaroneUI.Frames:ReplaceTargetFrame()
     if TargetFrame then
         local classification = UnitClassification("target")
@@ -82,14 +102,11 @@ function ErzbaroneUI.Frames:ReplaceTargetFrame()
                 targetFrameHealthBarText:SetPoint("CENTER", targetFrameHealthBar, "CENTER", 0, -6)
             end
             ErzbaroneUI.Frames:UpdateTargetHealthColor()
-
-            targetFrameHealthBar:HookScript("OnValueChanged", function(self, value)
-                ErzbaroneUI.Frames:UpdateTargetHealthColor()
-            end)
         end
     end
 end
 
+--- Updates the Player's health bar color to match their class color.
 function ErzbaroneUI.Frames:UpdatePlayerHealthColor()
     local _, playerClass = UnitClass("player")
     local color = RAID_CLASS_COLORS[playerClass]
@@ -100,6 +117,7 @@ function ErzbaroneUI.Frames:UpdatePlayerHealthColor()
     end
 end
 
+--- Updates the Target's health bar color to match their class color.
 function ErzbaroneUI.Frames:UpdateTargetHealthColor()
     local _, targetClass = UnitClass("target")
     local color = RAID_CLASS_COLORS[targetClass]

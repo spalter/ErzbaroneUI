@@ -4,10 +4,12 @@ end
 
 ErzbaroneUI.WorldMap = {}
 
+-- Initializes the world map modifications.
 function ErzbaroneUI.WorldMap:Initialize()
     ErzbaroneUI.WorldMap:MoveToCenter()
 end
 
+-- Moves the world map to the center of the screen.
 function ErzbaroneUI.WorldMap:MoveToCenter(self)
     local worldMapAnchor = _G["WorldMapScreenAnchor"]
     if worldMapAnchor then

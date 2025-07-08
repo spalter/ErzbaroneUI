@@ -4,10 +4,13 @@ end
 
 ErzbaroneUI.Minimap = {}
 
+--- Initializes the minimap modifications.
 function ErzbaroneUI.Minimap:Initialize()
     ErzbaroneUI.Minimap:Setup()
 end
 
+--- Sets up the initial state of the minimap.
+--- Enables mouse wheel zoom, repositions mail and tracking icons, and hides default buttons.
 function ErzbaroneUI.Minimap:Setup()
     Minimap:EnableMouseWheel(true)
     Minimap:SetScript("OnMouseWheel", function(self, delta)
@@ -34,9 +37,12 @@ function ErzbaroneUI.Minimap:Setup()
     minimapTracking:SetPoint("TOPRIGHT", Minimap, "TOPRIGHT", 0, 0)
 end
 
+--- Finds and moves minimap addon buttons into a circular pattern.
+--- Also sets up hover effects for these buttons.
 function ErzbaroneUI.Minimap:MoveButtons()
     local foundButtons = {}
 
+    --- Finds and repositions all addon buttons around the minimap.
     local function RepositionButtons()
         foundButtons = {}
 
@@ -98,7 +104,8 @@ function ErzbaroneUI.Minimap:MoveButtons()
     end
 
 
-    -- Setup minimap hover functionality
+    --- Sets up hover functionality for minimap buttons.
+    --- Buttons become visible on mouseover and hide otherwise.
     local function SetupMinimapHover()
         -- Hook individual button events to keep them visible
         for _, button in ipairs(foundButtons) do

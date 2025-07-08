@@ -8,6 +8,7 @@ local eventHooks = {
     "PLAYER_TARGET_CHANGED",
     "UNIT_HEALTH",
     "UNIT_HEALTH_FREQUENT",
+    "UNIT_MAXHEALTH",
     "PLAYER_REGEN_DISABLED",
     "PLAYER_REGEN_ENABLED",
 }
@@ -49,10 +50,14 @@ frame:SetScript("OnEvent", function(self, event, name)
     end
 
     -- Handle Player health changes, to keep the health bar color updated
-    if event == "UNIT_HEALTH" or event == "UNIT_HEALTH_FREQUENT" then
+    if event == "UNIT_HEALTH" or event == "UNIT_HEALTH_FREQUENT" or event == "UNIT_MAXHEALTH" then
         local unit = name or "player"
         if unit == "player" then
             ErzbaroneUI.Frames:UpdatePlayerHealthColor()
+        end
+
+        if unit == "target" then
+            ErzbaroneUI.Frames:UpdateTargetHealthColor()
         end
     end
 end)

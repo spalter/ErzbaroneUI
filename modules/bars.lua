@@ -4,10 +4,13 @@ end
 
 ErzbaroneUI.Bars = {}
 
+-- Initializes the bar modifications.
 function ErzbaroneUI.Bars:Initialize()
     ErzbaroneUI.Bars:SetupVerticalBarsMouseover()
 end
 
+-- Sets up mouseover functionality for the vertical bars (MultiBarRight and MultiBarLeft).
+-- This function hides the bars by default and shows them when the mouse hovers over them.
 function ErzbaroneUI.Bars:SetupVerticalBarsMouseover()
     local bars = { MultiBarRight, MultiBarLeft }
 

@@ -4,10 +4,14 @@ end
 
 ErzbaroneUI.Flag = {}
 
+-- Initializes the flag module.
 function ErzbaroneUI.Flag:Initialize()
     ErzbaroneUI.Flag:SetupFlag()
 end
 
+-- Sets up the flag frame and its texture.
+-- This function creates a frame that displays a flag texture below the minimap.
+-- The flag is positioned at the bottom center of the minimap
 function ErzbaroneUI.Flag:SetupFlag()
     local minimap = _G["TimeManagerClockButton"]
     local flagFrame = CreateFrame("Frame", "ErzbaroneUIFlagFrame", UIParent)
