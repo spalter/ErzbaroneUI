@@ -1,0 +1,8 @@
+package-as: ErzbaroneUI
+ignore:
+  - .vscode
+  - build
+  - docs
+  - .gitignore
+  - .git
+  - pkgmeta.yml
