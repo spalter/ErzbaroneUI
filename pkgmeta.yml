@@ -6,3 +6,5 @@ ignore:
   - .gitignore
   - .git
   - pkgmeta.yml
+  - README.md
+  - LICENSE
