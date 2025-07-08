@@ -1,7 +1,7 @@
 ## Interface: 11506, 11507
 ## Title: ErzbaroneUI
 ## Author: spalt_er
-## Version: 0.2
+## Version: 0.3
 ## Notes: A World of Warcraft Classic Era Interface
 
 # Modules
