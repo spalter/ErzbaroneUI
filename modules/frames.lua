@@ -126,7 +126,7 @@ function ErzbaroneUI.Frames:UpdatePlayerHealthColor()
     local color = RAID_CLASS_COLORS[playerClass]
 
     local playerFrameHealthBar = _G["PlayerFrameHealthBar"]
-    if playerFrameHealthBar then
+    if playerFrameHealthBar and color ~= nil then
         playerFrameHealthBar:SetStatusBarColor(color.r, color.g, color.b)
     end
 end
@@ -139,7 +139,7 @@ function ErzbaroneUI.Frames:UpdateTargetHealthColor()
     local color = RAID_CLASS_COLORS[targetClass]
 
     local targetFrameHealthBar = _G["TargetFrameHealthBar"]
-    if targetFrameHealthBar then
+    if targetFrameHealthBar and color ~= nil then
         targetFrameHealthBar:SetStatusBarColor(color.r, color.g, color.b)
     end
 end
