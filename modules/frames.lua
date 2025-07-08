@@ -6,9 +6,21 @@ ErzbaroneUI.Frames = {}
 
 --- Initializes the frame modifications.
 function ErzbaroneUI.Frames:Initialize()
-    ErzbaroneUI.Frames:CenterFrames()
-    ErzbaroneUI.Frames:ReplacePlayerFrame()
-    ErzbaroneUI.Frames:InitializeTargetFrameHooks()
+    if ErzbaroneUISettings.improvedUnitFrames then
+        ErzbaroneUI.Frames:CenterFrames()
+        ErzbaroneUI.Frames:ReplacePlayerFrame()
+        ErzbaroneUI.Frames:InitializeTargetFrameHooks()
+    end
+end
+
+--- Activates the improved unit frames by centering the frames,
+function ErzbaroneUI.Frames.ActivateImprovedUnitFrames()
+    ReloadUI()
+end
+
+--- Deactivates the improved unit frames by reloading the UI.
+function ErzbaroneUI.Frames.DeactivateImprovedUnitFrames()
+    ReloadUI()
 end
 
 --- Repositions the Player and Target frames to the bottom center of the screen.
@@ -108,6 +120,8 @@ end
 
 --- Updates the Player's health bar color to match their class color.
 function ErzbaroneUI.Frames:UpdatePlayerHealthColor()
+    if not ErzbaroneUISettings.unitClassColors then return end
+
     local _, playerClass = UnitClass("player")
     local color = RAID_CLASS_COLORS[playerClass]
 
@@ -119,11 +133,32 @@ end
 
 --- Updates the Target's health bar color to match their class color.
 function ErzbaroneUI.Frames:UpdateTargetHealthColor()
+    if not ErzbaroneUISettings.unitClassColors then return end
+
     local _, targetClass = UnitClass("target")
     local color = RAID_CLASS_COLORS[targetClass]
 
     local targetFrameHealthBar = _G["TargetFrameHealthBar"]
     if targetFrameHealthBar then
         targetFrameHealthBar:SetStatusBarColor(color.r, color.g, color.b)
+    end
+end
+
+--- Updates both Player and Target health bar colors to match their respective class colors.
+function ErzbaroneUI.Frames:UpdateBothHealthColors()
+    ErzbaroneUI.Frames:UpdatePlayerHealthColor()
+    ErzbaroneUI.Frames:UpdateTargetHealthColor()
+end
+
+--- Resets the Player and Target frames to their default health bar colors.
+function ErzbaroneUI.Frames:SetDefaultHealthBarColor()
+    local playerFrameHealthBar = _G["PlayerFrameHealthBar"]
+    if playerFrameHealthBar then
+        playerFrameHealthBar:SetStatusBarColor(0, 1, 0) -- Default to green
+    end
+
+    local targetFrameHealthBar = _G["TargetFrameHealthBar"]
+    if targetFrameHealthBar then
+        targetFrameHealthBar:SetStatusBarColor(0, 1, 0) -- Default to green
     end
 end

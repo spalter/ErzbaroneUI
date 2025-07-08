@@ -3,16 +3,17 @@
 ## Author: spalt_er
 ## Version: 0.3
 ## Notes: A World of Warcraft Classic Era Interface
+## SavedVariables: ErzbaroneUISettings
 
 # Modules
-modules\chat.lua
-modules\bars.lua
 modules\bags.lua
-modules\worldmap.lua
-modules\minimap.lua
-modules\frames.lua
+modules\bars.lua
+modules\chat.lua
 modules\config.lua
+modules\frames.lua
 modules\flag.lua
+modules\minimap.lua
+modules\worldmap.lua
 
 # Core
 main.lua

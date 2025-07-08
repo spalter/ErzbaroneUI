@@ -21,6 +21,11 @@ end
 frame:SetScript("OnEvent", function(self, event, name)
     if event == "ADDON_LOADED" and name == "ErzbaroneUI" then
         ErzbaroneUI.Config:SetDamageFont()
+
+        SLASH_ERZBARONEUI1 = "/eui"
+        SlashCmdList["ERZBARONEUI"] = function(msg)
+            ErzbaroneUI.Config:ToggleFrame()
+        end
     end
 
     -- Handle one time setup for the addon
@@ -33,24 +38,17 @@ frame:SetScript("OnEvent", function(self, event, name)
         ErzbaroneUI.Bars:Initialize()
         ErzbaroneUI.Minimap:Initialize()
         ErzbaroneUI.Flag:Initialize()
-
-        C_Timer.After(0.5, function()
-            local LibDBIcon = LibStub and LibStub:GetLibrary("LibDBIcon-1.0", true)
-            if LibDBIcon then
-                ErzbaroneUI.Minimap:MoveButtons()
-            end
-        end)
     end
 
     -- Handle player target changes
     if event == "PLAYER_TARGET_CHANGED" then
-        if UnitExists("target") then
+        if UnitExists("target") and ErzbaroneUISettings.improvedUnitFrames then
             ErzbaroneUI.Frames:ReplaceTargetFrame()
         end
     end
 
     -- Handle Player health changes, to keep the health bar color updated
-    if event == "UNIT_HEALTH" or event == "UNIT_HEALTH_FREQUENT" or event == "UNIT_MAXHEALTH" then
+    if event == "UNIT_HEALTH" or event == "UNIT_HEALTH_FREQUENT" or event == "UNIT_MAXHEALTH" and ErzbaroneUISettings.improvedUnitFrames then
         local unit = name or "player"
         if unit == "player" then
             ErzbaroneUI.Frames:UpdatePlayerHealthColor()

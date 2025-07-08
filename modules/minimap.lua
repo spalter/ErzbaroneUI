@@ -7,6 +7,15 @@ ErzbaroneUI.Minimap = {}
 --- Initializes the minimap modifications.
 function ErzbaroneUI.Minimap:Initialize()
     ErzbaroneUI.Minimap:Setup()
+
+    if ErzbaroneUISettings.hideExternalMinimapButtons then
+        C_Timer.After(0.5, function()
+            local LibDBIcon = LibStub and LibStub:GetLibrary("LibDBIcon-1.0", true)
+            if LibDBIcon then
+                ErzbaroneUI.Minimap:MoveExternalButtons()
+            end
+        end)
+    end
 end
 
 --- Sets up the initial state of the minimap.
@@ -39,7 +48,7 @@ end
 
 --- Finds and moves minimap addon buttons into a circular pattern.
 --- Also sets up hover effects for these buttons.
-function ErzbaroneUI.Minimap:MoveButtons()
+function ErzbaroneUI.Minimap:MoveExternalButtons()
     local foundButtons = {}
 
     --- Finds and repositions all addon buttons around the minimap.

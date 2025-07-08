@@ -2,6 +2,11 @@
 
 A reduced World of Warcraft Classic Era Interface
 
+## Usage
+
+Extract the `ErzbaroneUI` directory from the release zip into the `World of Warcraft\_classic_era_\Interface\AddOns\` directory.
+To open the configuration, you can click on the ErzbaroneUI flag beneath the Minimap or type `/eui`.
+
 ## Features
 
 - Improved UnitFrames
@@ -14,9 +19,11 @@ A reduced World of Warcraft Classic Era Interface
 
 ## Screenshots
 
-![ErzbaroneUI](docs/full.jpg)
+![ErzbaroneUI (UI)](docs/full.jpg)
 
 ![ErzbaroneUI (Map & Bags)](docs/map_bags.jpg)
+
+![ErzbaroneUI (Settings)](docs/settings.jpg)
 
 ## Compability
 

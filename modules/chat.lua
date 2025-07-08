@@ -6,11 +6,35 @@ ErzbaroneUI.Chat = {}
 
 -- Initializes the chat modifications.
 function ErzbaroneUI.Chat:Initialize()
-    ErzbaroneUI.Chat:Setup()
+    if ErzbaroneUISettings and ErzbaroneUISettings.hideChatButtons then
+        ErzbaroneUI.Chat:HideChatButtons()
+    else
+        ErzbaroneUI.Chat:ShowChatButtons()
+    end
+end
+
+-- Sets up the chat frame buttons to be shown by default.
+function ErzbaroneUI.Chat:ShowChatButtons()
+    local buttonNames = {
+        "ChatFrameChannelButton",
+        "FriendsMicroButton",
+        "ChatFrameMenuButton",
+        "ChatFrame1ButtonFrameUpButton",
+        "ChatFrame1ButtonFrameDownButton",
+        "ChatFrame1ButtonFrameBottomButton",
+    }
+
+    for _, btn in ipairs(buttonNames) do
+        local button = _G[btn]
+        if button then button:SetAlpha(1) end
+    end
+
+    local anchor = ChatFrame1ButtonFrame
+    anchor:EnableMouse(false)
 end
 
 -- Sets up the chat frame buttons to be hidden by default and shown on mouseover.
-function ErzbaroneUI.Chat:Setup()
+function ErzbaroneUI.Chat:HideChatButtons()
     local buttonNames = {
         "ChatFrameChannelButton",
         "FriendsMicroButton",
