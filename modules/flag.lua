@@ -8,6 +8,16 @@ ErzbaroneUI.Flag = {}
 function ErzbaroneUI.Flag:Initialize()
     if ErzbaroneUISettings.showErzbaroneUIFlag then
         ErzbaroneUI.Flag:ShowFlag()
+
+        Minimap:HookScript("OnShow", function()
+            if ErzbaroneUISettings.showErzbaroneUIFlag then
+                ErzbaroneUI.Flag:ShowFlag()
+            end
+        end)
+
+        Minimap:HookScript("OnHide", function()
+            ErzbaroneUI.Flag:HideFlag()
+        end)
     else
         ErzbaroneUI.Flag:HideFlag()
     end

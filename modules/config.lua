@@ -111,7 +111,7 @@ function ErzbaroneUI.Config:ImprovedUnitFrames(parentFrame)
     local improvedUnitFramesToggle = CreateFrame("CheckButton", "ErzbaroneUIImprovedUnitFramesToggle", parentFrame,
         "UICheckButtonTemplate")
     improvedUnitFramesToggle:SetPoint("TOPLEFT", 15, -90)
-    _G[improvedUnitFramesToggle:GetName() .. "Text"]:SetText("Improved Unit Frames (Requires UI Reload)")
+    _G[improvedUnitFramesToggle:GetName() .. "Text"]:SetText("Improved Unit Frames")
     improvedUnitFramesToggle:SetChecked(ErzbaroneUISettings.improvedUnitFrames)
     improvedUnitFramesToggle:SetScript("OnClick", function(self)
         ErzbaroneUISettings.improvedUnitFrames = self:GetChecked()
@@ -146,7 +146,7 @@ function ErzbaroneUI.Config:HandleExternalMinimapButtons(parentFrame)
         parentFrame,
         "UICheckButtonTemplate")
     externalMinimapButtonsToggle:SetPoint("TOPLEFT", 15, -150)
-    _G[externalMinimapButtonsToggle:GetName() .. "Text"]:SetText("Hide Minimap Buttons (Requires UI Reload)")
+    _G[externalMinimapButtonsToggle:GetName() .. "Text"]:SetText("Hide Minimap Buttons")
     externalMinimapButtonsToggle:SetChecked(ErzbaroneUISettings.hideExternalMinimapButtons)
     externalMinimapButtonsToggle:SetScript("OnClick", function(self)
         ErzbaroneUISettings.hideExternalMinimapButtons = self:GetChecked()
@@ -167,11 +167,7 @@ function ErzbaroneUI.Config:ShowErzbaroneUIFlag(parentFrame)
     showErzbaroneUIFlagToggle:SetChecked(ErzbaroneUISettings.showErzbaroneUIFlag)
     showErzbaroneUIFlagToggle:SetScript("OnClick", function(self)
         ErzbaroneUISettings.showErzbaroneUIFlag = self:GetChecked()
-        if ErzbaroneUISettings.showErzbaroneUIFlag then
-            ErzbaroneUI.Flag:ShowFlag()
-        else
-            ErzbaroneUI.Flag:HideFlag()
-        end
+        ReloadUI()
     end)
 end
 
@@ -196,7 +192,7 @@ function ErzbaroneUI.Config:ShowFiveSecondRuleTimer(parentFrame)
     local fiveSecondRuleToggle = CreateFrame("CheckButton", "ErzbaroneUIFiveSecondRuleToggle", parentFrame,
         "UICheckButtonTemplate")
     fiveSecondRuleToggle:SetPoint("TOPLEFT", 15, -240)
-    _G[fiveSecondRuleToggle:GetName() .. "Text"]:SetText("Show Five Second Rule Timer (Requires UI Reload)")
+    _G[fiveSecondRuleToggle:GetName() .. "Text"]:SetText("Show Five Second Rule Timer")
     fiveSecondRuleToggle:SetChecked(ErzbaroneUISettings.fiveSecondRuleTimer)
     fiveSecondRuleToggle:SetScript("OnClick", function(self)
         ErzbaroneUISettings.fiveSecondRuleTimer = self:GetChecked()
@@ -209,7 +205,7 @@ function ErzbaroneUI.Config:ShowSwingTimer(parentFrame)
     local swingTimerToggle = CreateFrame("CheckButton", "ErzbaroneUISwingTimerToggle", parentFrame,
         "UICheckButtonTemplate")
     swingTimerToggle:SetPoint("TOPLEFT", 15, -270)
-    _G[swingTimerToggle:GetName() .. "Text"]:SetText("Show Swing Timer (Requires UI Reload)")
+    _G[swingTimerToggle:GetName() .. "Text"]:SetText("Show Swing Timer")
     swingTimerToggle:SetChecked(ErzbaroneUISettings.swingTimer)
     swingTimerToggle:SetScript("OnClick", function(self)
         ErzbaroneUISettings.swingTimer = self:GetChecked()
