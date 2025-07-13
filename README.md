@@ -16,6 +16,8 @@ To open the configuration, you can click on the ErzbaroneUI flag beneath the Min
 - Vertical actions bars only on mouse over
 - Floating combat text font changed to skurri.ttf
 - World map centered
+- Five second rule timer
+- Swing timer for main hand
 
 ## Screenshots
 
