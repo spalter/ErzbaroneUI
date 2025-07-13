@@ -37,4 +37,7 @@ I'm using the addon with a few other that worked well to complete the experience
 
 ## Credits
 
-- [UnitFramesImproved](https://github.com/kiforsbe/UnitFramesImproved) for the UnitFrame Textures
+- [UnitFramesImproved](https://github.com/kiforsbe/UnitFramesImproved)
+- [FiveSeconRule](https://github.com/smp4903/FiveSecondRule)
+- [WeaponSwingTimer](https://github.com/LeftHandedGlove/WeaponSwingTimerAddon)
+- [World of Warcraft Programming](https://wowprogramming.com/index.html)

@@ -12,6 +12,8 @@ local defaults = {
     hideExternalMinimapButtons = true,
     showErzbaroneUIFlag = true,
     unitClassColors = true,
+    fiveSecondRuleTimer = true,
+    swingTimer = true,
 }
 
 --- Initializes the configuration settings for ErzbaroneUI.
@@ -44,7 +46,7 @@ end
 --- This function creates a frame that will be used to toggle various module settings.
 function ErzbaroneUI.Config:CreateFrame()
     local configurationFrame = CreateFrame("Frame", "ErzbaroneUIConfigFrame", UIParent, "BasicFrameTemplate")
-    configurationFrame:SetSize(320, 250)
+    configurationFrame:SetSize(320, 310)
     configurationFrame:SetPoint("CENTER")
     configurationFrame:SetMovable(true)
     configurationFrame:EnableMouse(true)
@@ -64,6 +66,8 @@ function ErzbaroneUI.Config:CreateFrame()
     ErzbaroneUI.Config:HandleExternalMinimapButtons(configurationFrame)
     ErzbaroneUI.Config:ShowErzbaroneUIFlag(configurationFrame)
     ErzbaroneUI.Config:ShowUnitClassColors(configurationFrame)
+    ErzbaroneUI.Config:ShowFiveSecondRuleTimer(configurationFrame)
+    ErzbaroneUI.Config:ShowSwingTimer(configurationFrame)
 
     ErzbaroneUI.Config.Frame = configurationFrame
 end
@@ -185,6 +189,31 @@ function ErzbaroneUI.Config:ShowUnitClassColors(parentFrame)
         else
             ErzbaroneUI.Frames:SetDefaultHealthBarColor()
         end
+    end)
+end
+
+function ErzbaroneUI.Config:ShowFiveSecondRuleTimer(parentFrame)
+    local fiveSecondRuleToggle = CreateFrame("CheckButton", "ErzbaroneUIFiveSecondRuleToggle", parentFrame,
+        "UICheckButtonTemplate")
+    fiveSecondRuleToggle:SetPoint("TOPLEFT", 15, -240)
+    _G[fiveSecondRuleToggle:GetName() .. "Text"]:SetText("Show Five Second Rule Timer (Requires UI Reload)")
+    fiveSecondRuleToggle:SetChecked(ErzbaroneUISettings.fiveSecondRuleTimer)
+    fiveSecondRuleToggle:SetScript("OnClick", function(self)
+        ErzbaroneUISettings.fiveSecondRuleTimer = self:GetChecked()
+        ReloadUI()
+    end)
+end
+
+--- Creates the swing timer settings section in the configuration frame.
+function ErzbaroneUI.Config:ShowSwingTimer(parentFrame)
+    local swingTimerToggle = CreateFrame("CheckButton", "ErzbaroneUISwingTimerToggle", parentFrame,
+        "UICheckButtonTemplate")
+    swingTimerToggle:SetPoint("TOPLEFT", 15, -270)
+    _G[swingTimerToggle:GetName() .. "Text"]:SetText("Show Swing Timer (Requires UI Reload)")
+    swingTimerToggle:SetChecked(ErzbaroneUISettings.swingTimer)
+    swingTimerToggle:SetScript("OnClick", function(self)
+        ErzbaroneUISettings.swingTimer = self:GetChecked()
+        ReloadUI()
     end)
 end
 

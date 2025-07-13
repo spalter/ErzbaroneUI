@@ -3,6 +3,8 @@ if not ErzbaroneUI then
 end
 
 ErzbaroneUI.Frames = {}
+ErzbaroneUI.Frames.swingStartPosition = -8
+ErzbaroneUI.Frames.swingEndPosition = 108
 
 --- Initializes the frame modifications.
 function ErzbaroneUI.Frames:Initialize()
@@ -10,6 +12,15 @@ function ErzbaroneUI.Frames:Initialize()
         ErzbaroneUI.Frames:CenterFrames()
         ErzbaroneUI.Frames:ReplacePlayerFrame()
         ErzbaroneUI.Frames:InitializeTargetFrameHooks()
+
+        if ErzbaroneUISettings.swingTimer then
+            ErzbaroneUI.Frames:ActivateSwingTimer()
+        end
+
+        if ErzbaroneUISettings.fiveSecondRuleTimer then
+            ErzbaroneUI.Frames:ActivateFiveSecondRuleTimer()
+            ErzbaroneUI.Frames:ActivateManaTickTimer()
+        end
     end
 end
 
@@ -161,4 +172,197 @@ function ErzbaroneUI.Frames:SetDefaultHealthBarColor()
     if targetFrameHealthBar then
         targetFrameHealthBar:SetStatusBarColor(0, 1, 0) -- Default to green
     end
+end
+
+--- Activates the swing timer for the player.
+--- This timer shows a visual indicator for the player's swing timer.
+function ErzbaroneUI.Frames:ActivateSwingTimer()
+    local playerFrame = _G["PlayerFrame"]
+    local swingTimerSparkFrame = CreateFrame("Frame", "ErzbaroneUISwingTimer", playerFrame)
+    swingTimerSparkFrame:SetPoint("BOTTOM", playerFrame, "BOTTOM", -8, -4)
+    swingTimerSparkFrame:SetFrameStrata("DIALOG")
+    swingTimerSparkFrame:SetFrameLevel(0)
+    swingTimerSparkFrame.texture = swingTimerSparkFrame:CreateTexture(nil, "BACKGROUND")
+    swingTimerSparkFrame:SetSize(70, 70)
+    swingTimerSparkFrame.texture:SetAllPoints()
+    swingTimerSparkFrame.texture:SetTexture("Interface\\AddOns\\ErzbaroneUI\\textures\\SwingTimerSpark")
+    swingTimerSparkFrame.texture:SetVertexColor(1.0, 0.5, 0.0) -- Orange color
+
+    swingTimerSparkFrame.startTime = 0
+    swingTimerSparkFrame.swingDuration = 0
+    swingTimerSparkFrame:Hide()
+
+    -- Swing Timer Movement
+    swingTimerSparkFrame:SetScript("OnUpdate", function(self, elapsed)
+        if self.startTime == 0 then return end
+
+        local timePassed = GetTime() - self.startTime
+        local progress = timePassed / self.swingDuration
+
+        if progress >= 1 then
+            self.startTime = 0
+            self:Hide()
+            return
+        end
+
+        local newX = ErzbaroneUI.Frames.swingStartPosition +
+            (ErzbaroneUI.Frames.swingEndPosition - ErzbaroneUI.Frames.swingStartPosition) * progress
+        self:ClearAllPoints()
+        self:SetPoint("BOTTOM", playerFrame, "BOTTOM", newX, -4)
+    end)
+
+    local swingTimerEventFrame = CreateFrame("Frame")
+    swingTimerEventFrame:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
+    swingTimerEventFrame:SetScript("OnEvent", function(self, event, ...)
+        local _, subevent, _, sourceGUID = CombatLogGetCurrentEventInfo()
+
+        -- Melee Attacks
+        if sourceGUID == UnitGUID("player") and (subevent == "SWING_DAMAGE" or subevent == "SWING_MISSED") then
+            local mainHandSpeed = UnitAttackSpeed("player")
+            if mainHandSpeed then
+                swingTimerSparkFrame.startTime = GetTime()
+                swingTimerSparkFrame.swingDuration = mainHandSpeed
+                swingTimerSparkFrame:Show()
+            end
+        end
+
+        -- Ranged Attacks
+        if sourceGUID == UnitGUID("player") and (subevent == "RANGE_DAMAGE" or subevent == "RANGE_MISSED") then
+            local rangedSpeed = UnitRangedDamage("player")
+
+            if rangedSpeed then
+                swingTimerSparkFrame.startTime = GetTime()
+                swingTimerSparkFrame.swingDuration = rangedSpeed
+                swingTimerSparkFrame:Show()
+            end
+        end
+    end)
+end
+
+--- Activates the Five Second Rule timer for the player.
+--- This timer shows a visual indicator for the Five Second Rule.
+function ErzbaroneUI.Frames:ActivateFiveSecondRuleTimer()
+    local playerFrame = _G["PlayerFrame"]
+
+    if UnitPowerType("player") ~= 0 then return end
+    local playerClass = select(2, UnitClass("player"))
+    if playerClass ~= "MAGE" and playerClass ~= "PRIEST" and playerClass ~= "WARLOCK" then
+        return
+    end
+
+    local fiveSecondRuleFrame = CreateFrame("Frame", "ErzbaroneUIFiveSecondRule", playerFrame)
+    fiveSecondRuleFrame:SetPoint("BOTTOM", playerFrame, "BOTTOM", -8, -4)
+    fiveSecondRuleFrame:SetSize(70, 70)
+    fiveSecondRuleFrame:SetFrameStrata("DIALOG")
+    fiveSecondRuleFrame.texture = fiveSecondRuleFrame:CreateTexture(nil, "BACKGROUND")
+    fiveSecondRuleFrame.texture:SetAllPoints()
+    fiveSecondRuleFrame.texture:SetTexture("Interface\\AddOns\\ErzbaroneUI\\textures\\SwingTimerSpark")
+
+    fiveSecondRuleFrame.startTime = 0
+    fiveSecondRuleFrame:Hide()
+
+    fiveSecondRuleFrame:SetScript("OnUpdate", function(self, elapsed)
+        if self.startTime == 0 then return end
+
+        local timePassed = GetTime() - self.startTime
+        if timePassed >= 5 then
+            self.startTime = 0
+            self:Hide()
+            return
+        end
+
+        local progress = timePassed / 5
+        local newX = ErzbaroneUI.Frames.swingStartPosition +
+            (ErzbaroneUI.Frames.swingEndPosition - ErzbaroneUI.Frames.swingStartPosition) * progress
+        self:ClearAllPoints()
+        self:SetPoint("BOTTOM", playerFrame, "BOTTOM", newX, -4)
+    end)
+
+    local fivesecondruleEventFrame = CreateFrame("Frame")
+    fivesecondruleEventFrame:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
+    fivesecondruleEventFrame:SetScript("OnEvent", function(self, event, unit, spellName, spellID)
+        print("Five Second Rule Event:", event, unit, spellName, spellID)
+        if unit == "player" and spellID ~= 5019 then
+            fiveSecondRuleFrame.startTime = GetTime()
+            fiveSecondRuleFrame:Show()
+        end
+    end)
+end
+
+--- Activates the mana tick timer for the player.
+--- This timer shows a visual indicator for mana regeneration ticks.
+--- Based on the 5-second rule, it updates the position of the indicator
+function ErzbaroneUI.Frames:ActivateManaTickTimer()
+    local playerFrame = _G["PlayerFrame"]
+    if UnitPowerType("player") ~= 0 then return end
+    local playerClass = select(2, UnitClass("player"))
+    if playerClass ~= "MAGE" and playerClass ~= "PRIEST" and playerClass ~= "WARLOCK" then
+        return
+    end
+
+    local manaTickFrame = CreateFrame("Frame", "ErzbaroneUIManaTickTimer", playerFrame)
+    manaTickFrame:SetPoint("BOTTOM", playerFrame, "BOTTOM", ErzbaroneUI.Frames.swingEndPosition, -4)
+    manaTickFrame:SetSize(70, 70)
+    manaTickFrame:SetFrameStrata("DIALOG")
+    manaTickFrame.texture = manaTickFrame:CreateTexture(nil, "BACKGROUND")
+    manaTickFrame.texture:SetAllPoints()
+    manaTickFrame.texture:SetTexture("Interface\\AddOns\\ErzbaroneUI\\textures\\SwingTimerSpark")
+    manaTickFrame.texture:SetVertexColor(0.5, 0.8, 1.0)
+
+    manaTickFrame.startTime = 0
+    manaTickFrame:Hide()
+
+    manaTickFrame:SetScript("OnUpdate", function(self, elapsed)
+        if self.startTime == 0 then return end
+
+        local timePassed = GetTime() - self.startTime
+        if timePassed >= 2 then
+            self.startTime = GetTime()
+            timePassed = 0
+        end
+
+        local progress = timePassed / 2
+        local newX = ErzbaroneUI.Frames.swingEndPosition -
+            (ErzbaroneUI.Frames.swingEndPosition - ErzbaroneUI.Frames.swingStartPosition) * progress
+        self:ClearAllPoints()
+        self:SetPoint("BOTTOM", playerFrame, "BOTTOM", newX, -4)
+    end)
+
+    local manaEventFrame = CreateFrame("Frame")
+    manaEventFrame:RegisterEvent("PLAYER_REGEN_ENABLED")
+    manaEventFrame:RegisterEvent("PLAYER_REGEN_DISABLED")
+    manaEventFrame:RegisterEvent("UNIT_POWER_UPDATE")
+    manaEventFrame:SetScript("OnEvent", function(self, event, unit)
+        local fiveSecondRuleFrame = _G["ErzbaroneUIFiveSecondRule"]
+        if not fiveSecondRuleFrame then return end
+
+        local inFiveSecondRule = fiveSecondRuleFrame:IsShown()
+        if inFiveSecondRule then
+            manaTickFrame.startTime = 0
+            manaTickFrame:Hide()
+            return
+        end
+
+        if event == "PLAYER_REGEN_ENABLED" then
+            local currentMana = UnitPower("player")
+            local maxMana = UnitPowerMax("player")
+            if currentMana < maxMana then
+                manaTickFrame.startTime = GetTime()
+                manaTickFrame:Show()
+            end
+        elseif event == "PLAYER_REGEN_DISABLED" then
+            manaTickFrame.startTime = 0
+            manaTickFrame:Hide()
+        elseif event == "UNIT_POWER_UPDATE" and unit == "player" then
+            local currentMana = UnitPower("player")
+            local maxMana = UnitPowerMax("player")
+            if currentMana < maxMana then
+                manaTickFrame.startTime = GetTime()
+                manaTickFrame:Show()
+            else
+                manaTickFrame.startTime = 0
+                manaTickFrame:Hide()
+            end
+        end
+    end)
 end
