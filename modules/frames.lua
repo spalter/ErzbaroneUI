@@ -186,7 +186,7 @@ function ErzbaroneUI.Frames:ActivateSwingTimer()
     swingTimerSparkFrame:SetSize(70, 70)
     swingTimerSparkFrame.texture:SetAllPoints()
     swingTimerSparkFrame.texture:SetTexture("Interface\\AddOns\\ErzbaroneUI\\textures\\SwingTimerSpark")
-    swingTimerSparkFrame.texture:SetVertexColor(1.0, 0.5, 0.0) -- Orange color
+    swingTimerSparkFrame.texture:SetVertexColor(1.0, 0.8, 0.4) -- Orange color
 
     swingTimerSparkFrame.startTime = 0
     swingTimerSparkFrame.swingDuration = 0
