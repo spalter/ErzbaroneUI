@@ -10,15 +10,15 @@ To open the configuration, you can click on the ErzbaroneUI flag beneath the Min
 ## Features
 
 - Improved UnitFrames
-- Bag Names removed
-- Minimap zoom with mouse scroll and removed clutter
+- Improved Action Bars
 - Chat buttons only on mouse over
-- Vertical actions bars only on mouse over
-- Floating combat text font changed to skurri.ttf
 - World map centered
+- Minimap zoom with mouse scroll and removed clutter
+- Floating combat text font changed to skurri.ttf
 - Five second rule timer
 - Swing timer for main hand
 - Target Castbar
+- Bag Names removed
 
 ## Screenshots
 

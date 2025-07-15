@@ -6,7 +6,7 @@ ErzbaroneUI.Config = {}
 ErzbaroneUI.Config.FrameSettings = { width = 320, height = 340, offsetX = 15 }
 
 local defaults = {
-    hideVerticalBars = true,
+    improvedActionBars = true,
     hideChatButtons = true,
     improvedUnitFrames = true,
     hideBagNames = true,
@@ -88,15 +88,11 @@ function ErzbaroneUI.Config:VerticalBarsSettings(parentFrame)
     local verticalBarsToggle = CreateFrame("CheckButton", "ErzbaroneUIVerticalBarsToggle", parentFrame,
         "UICheckButtonTemplate")
     verticalBarsToggle:SetPoint("TOPLEFT", ErzbaroneUI.Config.FrameSettings.offsetX, -30)
-    _G[verticalBarsToggle:GetName() .. "Text"]:SetText("Hide Vertical Bars")
-    verticalBarsToggle:SetChecked(ErzbaroneUISettings.hideVerticalBars)
+    _G[verticalBarsToggle:GetName() .. "Text"]:SetText("Improved Action Bars")
+    verticalBarsToggle:SetChecked(ErzbaroneUISettings.improvedActionBars)
     verticalBarsToggle:SetScript("OnClick", function(self)
-        ErzbaroneUISettings.hideVerticalBars = self:GetChecked()
-        if ErzbaroneUISettings.hideVerticalBars then
-            ErzbaroneUI.Bars:HideVerticalBars()
-        else
-            ErzbaroneUI.Bars:ShowVerticalBars()
-        end
+        ErzbaroneUISettings.improvedActionBars = self:GetChecked()
+        ErzbaroneUI.Config:Reload()
     end)
 end
 
