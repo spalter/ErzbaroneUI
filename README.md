@@ -18,6 +18,7 @@ To open the configuration, you can click on the ErzbaroneUI flag beneath the Min
 - World map centered
 - Five second rule timer
 - Swing timer for main hand
+- Target Castbar
 
 ## Screenshots
 

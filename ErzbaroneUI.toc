@@ -1,13 +1,14 @@
 ## Interface: 11506, 11507
 ## Title: ErzbaroneUI
 ## Author: spalt_er
-## Version: 0.6
+## Version: 0.7
 ## Notes: A World of Warcraft Classic Era Interface
 ## SavedVariables: ErzbaroneUISettings
 
 # Modules
 modules\bags.lua
 modules\bars.lua
+modules\castbar.lua
 modules\chat.lua
 modules\config.lua
 modules\unitframes.lua

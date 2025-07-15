@@ -3,7 +3,7 @@ if not ErzbaroneUI then
 end
 
 ErzbaroneUI.Config = {}
-ErzbaroneUI.Config.FrameSettings = { width = 320, height = 310, offsetX = 15 }
+ErzbaroneUI.Config.FrameSettings = { width = 320, height = 340, offsetX = 15 }
 
 local defaults = {
     hideVerticalBars = true,
@@ -15,6 +15,7 @@ local defaults = {
     unitClassColors = true,
     fiveSecondRuleTimer = true,
     swingTimer = true,
+    targetCastbar = true,
 }
 
 --- Initializes the configuration settings for ErzbaroneUI.
@@ -28,6 +29,11 @@ function ErzbaroneUI.Config:Initialize()
     end
 
     ErzbaroneUI.Config:Setup()
+end
+
+--- Reloads the UI to apply changes made in the configuration.
+function ErzbaroneUI.Config:Reload()
+    ReloadUI()
 end
 
 --- Sets up the initial configuration for ErzbaroneUI.
@@ -72,6 +78,7 @@ function ErzbaroneUI.Config:CreateFrame()
     ErzbaroneUI.Config:ShowUnitClassColors(configurationFrame)
     ErzbaroneUI.Config:ShowFiveSecondRuleTimer(configurationFrame)
     ErzbaroneUI.Config:ShowSwingTimer(configurationFrame)
+    ErzbaroneUI.Config:ShowTargetCastbar(configurationFrame)
 
     ErzbaroneUI.Config.Frame = configurationFrame
 end
@@ -154,11 +161,7 @@ function ErzbaroneUI.Config:HandleExternalMinimapButtons(parentFrame)
     externalMinimapButtonsToggle:SetChecked(ErzbaroneUISettings.hideExternalMinimapButtons)
     externalMinimapButtonsToggle:SetScript("OnClick", function(self)
         ErzbaroneUISettings.hideExternalMinimapButtons = self:GetChecked()
-        if ErzbaroneUISettings.hideExternalMinimapButtons then
-            ReloadUI()
-        else
-            ReloadUI()
-        end
+        ErzbaroneUI.Config:Reload()
     end)
 end
 
@@ -171,7 +174,7 @@ function ErzbaroneUI.Config:ShowErzbaroneUIFlag(parentFrame)
     showErzbaroneUIFlagToggle:SetChecked(ErzbaroneUISettings.showErzbaroneUIFlag)
     showErzbaroneUIFlagToggle:SetScript("OnClick", function(self)
         ErzbaroneUISettings.showErzbaroneUIFlag = self:GetChecked()
-        ReloadUI()
+        ErzbaroneUI.Config:Reload()
     end)
 end
 
@@ -192,6 +195,7 @@ function ErzbaroneUI.Config:ShowUnitClassColors(parentFrame)
     end)
 end
 
+--- Creates the five second rule timer settings section in the configuration frame.
 function ErzbaroneUI.Config:ShowFiveSecondRuleTimer(parentFrame)
     local fiveSecondRuleToggle = CreateFrame("CheckButton", "ErzbaroneUIFiveSecondRuleToggle", parentFrame,
         "UICheckButtonTemplate")
@@ -200,7 +204,7 @@ function ErzbaroneUI.Config:ShowFiveSecondRuleTimer(parentFrame)
     fiveSecondRuleToggle:SetChecked(ErzbaroneUISettings.fiveSecondRuleTimer)
     fiveSecondRuleToggle:SetScript("OnClick", function(self)
         ErzbaroneUISettings.fiveSecondRuleTimer = self:GetChecked()
-        ReloadUI()
+        ErzbaroneUI.Config:Reload()
     end)
 end
 
@@ -213,7 +217,20 @@ function ErzbaroneUI.Config:ShowSwingTimer(parentFrame)
     swingTimerToggle:SetChecked(ErzbaroneUISettings.swingTimer)
     swingTimerToggle:SetScript("OnClick", function(self)
         ErzbaroneUISettings.swingTimer = self:GetChecked()
-        ReloadUI()
+        ErzbaroneUI.Config:Reload()
+    end)
+end
+
+--- Creates the target castbar settings section in the configuration frame.
+function ErzbaroneUI.Config:ShowTargetCastbar(parentFrame)
+    local targetCastbarToggle = CreateFrame("CheckButton", "ErzbaroneUITargetCastbarToggle", parentFrame,
+        "UICheckButtonTemplate")
+    targetCastbarToggle:SetPoint("TOPLEFT", ErzbaroneUI.Config.FrameSettings.offsetX, -300)
+    _G[targetCastbarToggle:GetName() .. "Text"]:SetText("Show Target Castbar")
+    targetCastbarToggle:SetChecked(ErzbaroneUISettings.targetCastbar)
+    targetCastbarToggle:SetScript("OnClick", function(self)
+        ErzbaroneUISettings.targetCastbar = self:GetChecked()
+        ErzbaroneUI.Config:Reload()
     end)
 end
 
