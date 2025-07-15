@@ -14,6 +14,7 @@ local defaults = {
     unitClassColors = true,
     fiveSecondRuleTimer = true,
     swingTimer = true,
+    narrowUI = true,
 }
 
 --- Initializes the configuration settings for ErzbaroneUI.
@@ -46,7 +47,7 @@ end
 --- This function creates a frame that will be used to toggle various module settings.
 function ErzbaroneUI.Config:CreateFrame()
     local configurationFrame = CreateFrame("Frame", "ErzbaroneUIConfigFrame", UIParent, "BasicFrameTemplate")
-    configurationFrame:SetSize(320, 310)
+    configurationFrame:SetSize(320, 380)
     configurationFrame:SetPoint("CENTER")
     configurationFrame:SetMovable(true)
     configurationFrame:EnableMouse(true)
@@ -68,6 +69,15 @@ function ErzbaroneUI.Config:CreateFrame()
     ErzbaroneUI.Config:ShowUnitClassColors(configurationFrame)
     ErzbaroneUI.Config:ShowFiveSecondRuleTimer(configurationFrame)
     ErzbaroneUI.Config:ShowSwingTimer(configurationFrame)
+    ErzbaroneUI.Config:ShowNarrowUI(configurationFrame)
+
+    local reloadButton = CreateFrame("Button", "ErzbaroneUIReloadButton", configurationFrame, "UIPanelButtonTemplate")
+    reloadButton:SetSize(100, 22)
+    reloadButton:SetPoint("BOTTOM", 0, 15)
+    reloadButton:SetText("Reload UI")
+    reloadButton:SetScript("OnClick", function()
+        ReloadUI()
+    end)
 
     ErzbaroneUI.Config.Frame = configurationFrame
 end
@@ -116,9 +126,9 @@ function ErzbaroneUI.Config:ImprovedUnitFrames(parentFrame)
     improvedUnitFramesToggle:SetScript("OnClick", function(self)
         ErzbaroneUISettings.improvedUnitFrames = self:GetChecked()
         if ErzbaroneUISettings.improvedUnitFrames then
-            ErzbaroneUI.Frames.ActivateImprovedUnitFrames()
+            ErzbaroneUI.UnitFrames.ActivateImprovedUnitFrames()
         else
-            ErzbaroneUI.Frames.DeactivateImprovedUnitFrames()
+            ErzbaroneUI.UnitFrames.DeactivateImprovedUnitFrames()
         end
     end)
 end
@@ -181,9 +191,9 @@ function ErzbaroneUI.Config:ShowUnitClassColors(parentFrame)
     unitClassColorsToggle:SetScript("OnClick", function(self)
         ErzbaroneUISettings.unitClassColors = self:GetChecked()
         if ErzbaroneUISettings.unitClassColors then
-            ErzbaroneUI.Frames:UpdateBothHealthColors()
+            ErzbaroneUI.UnitFrames:UpdateBothHealthColors()
         else
-            ErzbaroneUI.Frames:SetDefaultHealthBarColor()
+            ErzbaroneUI.UnitFrames:SetDefaultHealthBarColor()
         end
     end)
 end
@@ -209,7 +219,22 @@ function ErzbaroneUI.Config:ShowSwingTimer(parentFrame)
     swingTimerToggle:SetChecked(ErzbaroneUISettings.swingTimer)
     swingTimerToggle:SetScript("OnClick", function(self)
         ErzbaroneUISettings.swingTimer = self:GetChecked()
-        ReloadUI()
+    end)
+end
+
+function ErzbaroneUI.Config:ShowNarrowUI(parentFrame)
+    local narrowUIToggle = CreateFrame("CheckButton", "ErzbaroneUINarrowUIToggle", parentFrame,
+        "UICheckButtonTemplate")
+    narrowUIToggle:SetPoint("TOPLEFT", 15, -300)
+    _G[narrowUIToggle:GetName() .. "Text"]:SetText("Use Narrow UI")
+    narrowUIToggle:SetChecked(ErzbaroneUISettings.narrowUI)
+    narrowUIToggle:SetScript("OnClick", function(self)
+        ErzbaroneUISettings.narrowUI = self:GetChecked()
+        if ErzbaroneUISettings.narrowUI then
+            ErzbaroneUI.Frames:Initialize()
+        else
+            ReloadUI()
+        end
     end)
 end
 
