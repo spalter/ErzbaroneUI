@@ -2,40 +2,40 @@ if not ErzbaroneUI then
     ErzbaroneUI = {}
 end
 
-ErzbaroneUI.Frames = {}
-ErzbaroneUI.Frames.swingStartPosition = -8
-ErzbaroneUI.Frames.swingEndPosition = 108
+ErzbaroneUI.UnitFrames = {}
+ErzbaroneUI.UnitFrames.swingStartPosition = -8
+ErzbaroneUI.UnitFrames.swingEndPosition = 108
 
 --- Initializes the frame modifications.
-function ErzbaroneUI.Frames:Initialize()
+function ErzbaroneUI.UnitFrames:Initialize()
     if ErzbaroneUISettings.improvedUnitFrames then
-        ErzbaroneUI.Frames:CenterFrames()
-        ErzbaroneUI.Frames:ReplacePlayerFrame()
-        ErzbaroneUI.Frames:InitializeTargetFrameHooks()
+        ErzbaroneUI.UnitFrames:CenterFrames()
+        ErzbaroneUI.UnitFrames:ReplacePlayerFrame()
+        ErzbaroneUI.UnitFrames:InitializeTargetFrameHooks()
 
         if ErzbaroneUISettings.swingTimer then
-            ErzbaroneUI.Frames:ActivateSwingTimer()
+            ErzbaroneUI.UnitFrames:ActivateSwingTimer()
         end
 
         if ErzbaroneUISettings.fiveSecondRuleTimer then
-            ErzbaroneUI.Frames:ActivateFiveSecondRuleTimer()
-            ErzbaroneUI.Frames:ActivateManaTickTimer()
+            ErzbaroneUI.UnitFrames:ActivateFiveSecondRuleTimer()
+            ErzbaroneUI.UnitFrames:ActivateManaTickTimer()
         end
     end
 end
 
 --- Activates the improved unit frames by centering the frames,
-function ErzbaroneUI.Frames.ActivateImprovedUnitFrames()
+function ErzbaroneUI.UnitFrames.ActivateImprovedUnitFrames()
     ReloadUI()
 end
 
 --- Deactivates the improved unit frames by reloading the UI.
-function ErzbaroneUI.Frames.DeactivateImprovedUnitFrames()
+function ErzbaroneUI.UnitFrames.DeactivateImprovedUnitFrames()
     ReloadUI()
 end
 
 --- Repositions the Player and Target frames to the bottom center of the screen.
-function ErzbaroneUI.Frames:CenterFrames()
+function ErzbaroneUI.UnitFrames:CenterFrames()
     PlayerFrame:ClearAllPoints()
     PlayerFrame:SetPoint("BOTTOM", UIParent, "BOTTOM", -300, 150)
 
@@ -45,7 +45,7 @@ end
 
 --- Customizes the appearance of the Player frame.
 --- Replaces textures, repositions the health bar, and updates colors.
-function ErzbaroneUI.Frames:ReplacePlayerFrame()
+function ErzbaroneUI.UnitFrames:ReplacePlayerFrame()
     local playerFrameTexture = _G["PlayerFrameTexture"]
     if playerFrameTexture then
         playerFrameTexture:SetTexture("Interface\\AddOns\\ErzbaroneUI\\textures\\UI-TargetingFrame")
@@ -60,11 +60,11 @@ function ErzbaroneUI.Frames:ReplacePlayerFrame()
             playerFrameHealthBar:SetHeight(30)
             playerFrameHealthBarText:ClearAllPoints()
             playerFrameHealthBarText:SetPoint("CENTER", playerFrameHealthBar, "CENTER", 0, -6)
-            ErzbaroneUI.Frames:UpdatePlayerHealthColor()
+            ErzbaroneUI.UnitFrames:UpdatePlayerHealthColor()
         end)
 
         playerFrameHealthBar:HookScript("OnValueChanged", function(self, value)
-            ErzbaroneUI.Frames:UpdatePlayerHealthColor()
+            ErzbaroneUI.UnitFrames:UpdatePlayerHealthColor()
         end)
     end
 
@@ -76,12 +76,12 @@ end
 
 --- Initializes hooks for the Target frame.
 --- Specifically, it hooks the health bar to update its color on value change.
-function ErzbaroneUI.Frames:InitializeTargetFrameHooks()
+function ErzbaroneUI.UnitFrames:InitializeTargetFrameHooks()
     C_Timer.After(0.1, function()
         local targetFrameHealthBar = _G["TargetFrameHealthBar"]
         if targetFrameHealthBar then
             targetFrameHealthBar:HookScript("OnValueChanged", function(self, value)
-                ErzbaroneUI.Frames:UpdateTargetHealthColor()
+                ErzbaroneUI.UnitFrames:UpdateTargetHealthColor()
             end)
         end
     end)
@@ -89,7 +89,7 @@ end
 
 --- Customizes the appearance of the Target frame.
 --- Replaces textures based on classification, repositions the health bar, and updates colors.
-function ErzbaroneUI.Frames:ReplaceTargetFrame()
+function ErzbaroneUI.UnitFrames:ReplaceTargetFrame()
     if TargetFrame then
         local classification = UnitClassification("target")
         local targetFrameTexture = _G["TargetFrameTextureFrameTexture"]
@@ -124,13 +124,13 @@ function ErzbaroneUI.Frames:ReplaceTargetFrame()
                 targetFrameHealthBarText:ClearAllPoints()
                 targetFrameHealthBarText:SetPoint("CENTER", targetFrameHealthBar, "CENTER", 0, -6)
             end
-            ErzbaroneUI.Frames:UpdateTargetHealthColor()
+            ErzbaroneUI.UnitFrames:UpdateTargetHealthColor()
         end
     end
 end
 
 --- Updates the Player's health bar color to match their class color.
-function ErzbaroneUI.Frames:UpdatePlayerHealthColor()
+function ErzbaroneUI.UnitFrames:UpdatePlayerHealthColor()
     if not ErzbaroneUISettings.unitClassColors then return end
 
     local _, playerClass = UnitClass("player")
@@ -143,7 +143,7 @@ function ErzbaroneUI.Frames:UpdatePlayerHealthColor()
 end
 
 --- Updates the Target's health bar color to match their class color.
-function ErzbaroneUI.Frames:UpdateTargetHealthColor()
+function ErzbaroneUI.UnitFrames:UpdateTargetHealthColor()
     if not ErzbaroneUISettings.unitClassColors then return end
 
     local _, targetClass = UnitClass("target")
@@ -156,13 +156,13 @@ function ErzbaroneUI.Frames:UpdateTargetHealthColor()
 end
 
 --- Updates both Player and Target health bar colors to match their respective class colors.
-function ErzbaroneUI.Frames:UpdateBothHealthColors()
-    ErzbaroneUI.Frames:UpdatePlayerHealthColor()
-    ErzbaroneUI.Frames:UpdateTargetHealthColor()
+function ErzbaroneUI.UnitFrames:UpdateBothHealthColors()
+    ErzbaroneUI.UnitFrames:UpdatePlayerHealthColor()
+    ErzbaroneUI.UnitFrames:UpdateTargetHealthColor()
 end
 
 --- Resets the Player and Target frames to their default health bar colors.
-function ErzbaroneUI.Frames:SetDefaultHealthBarColor()
+function ErzbaroneUI.UnitFrames:SetDefaultHealthBarColor()
     local playerFrameHealthBar = _G["PlayerFrameHealthBar"]
     if playerFrameHealthBar then
         playerFrameHealthBar:SetStatusBarColor(0, 1, 0) -- Default to green
@@ -176,7 +176,7 @@ end
 
 --- Activates the swing timer for the player.
 --- This timer shows a visual indicator for the player's swing timer.
-function ErzbaroneUI.Frames:ActivateSwingTimer()
+function ErzbaroneUI.UnitFrames:ActivateSwingTimer()
     local playerFrame = _G["PlayerFrame"]
     local swingTimerSparkFrame = CreateFrame("Frame", "ErzbaroneUISwingTimer", playerFrame)
     swingTimerSparkFrame:SetPoint("BOTTOM", playerFrame, "BOTTOM", -8, -4)
@@ -205,8 +205,8 @@ function ErzbaroneUI.Frames:ActivateSwingTimer()
             return
         end
 
-        local newX = ErzbaroneUI.Frames.swingStartPosition +
-            (ErzbaroneUI.Frames.swingEndPosition - ErzbaroneUI.Frames.swingStartPosition) * progress
+        local newX = ErzbaroneUI.UnitFrames.swingStartPosition +
+            (ErzbaroneUI.UnitFrames.swingEndPosition - ErzbaroneUI.UnitFrames.swingStartPosition) * progress
         self:ClearAllPoints()
         self:SetPoint("BOTTOM", playerFrame, "BOTTOM", newX, -4)
     end)
@@ -241,7 +241,7 @@ end
 
 --- Activates the Five Second Rule timer for the player.
 --- This timer shows a visual indicator for the Five Second Rule.
-function ErzbaroneUI.Frames:ActivateFiveSecondRuleTimer()
+function ErzbaroneUI.UnitFrames:ActivateFiveSecondRuleTimer()
     local playerFrame = _G["PlayerFrame"]
 
     if UnitPowerType("player") ~= 0 then return end
@@ -272,8 +272,8 @@ function ErzbaroneUI.Frames:ActivateFiveSecondRuleTimer()
         end
 
         local progress = timePassed / 5
-        local newX = ErzbaroneUI.Frames.swingStartPosition +
-            (ErzbaroneUI.Frames.swingEndPosition - ErzbaroneUI.Frames.swingStartPosition) * progress
+        local newX = ErzbaroneUI.UnitFrames.swingStartPosition +
+            (ErzbaroneUI.UnitFrames.swingEndPosition - ErzbaroneUI.UnitFrames.swingStartPosition) * progress
         self:ClearAllPoints()
         self:SetPoint("BOTTOM", playerFrame, "BOTTOM", newX, -4)
     end)
@@ -281,8 +281,10 @@ function ErzbaroneUI.Frames:ActivateFiveSecondRuleTimer()
     local fivesecondruleEventFrame = CreateFrame("Frame")
     fivesecondruleEventFrame:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
     fivesecondruleEventFrame:SetScript("OnEvent", function(self, event, unit, spellName, spellID)
-        print("Five Second Rule Event:", event, unit, spellName, spellID)
-        if unit == "player" and spellID ~= 5019 then
+        if unit == "player" then
+            local cost = C_Spell.GetSpellPowerCost(spellID)
+            if not cost or #cost == 0 then return end
+
             fiveSecondRuleFrame.startTime = GetTime()
             fiveSecondRuleFrame:Show()
         end
@@ -292,7 +294,7 @@ end
 --- Activates the mana tick timer for the player.
 --- This timer shows a visual indicator for mana regeneration ticks.
 --- Based on the 5-second rule, it updates the position of the indicator
-function ErzbaroneUI.Frames:ActivateManaTickTimer()
+function ErzbaroneUI.UnitFrames:ActivateManaTickTimer()
     local playerFrame = _G["PlayerFrame"]
     if UnitPowerType("player") ~= 0 then return end
     local playerClass = select(2, UnitClass("player"))
@@ -301,7 +303,7 @@ function ErzbaroneUI.Frames:ActivateManaTickTimer()
     end
 
     local manaTickFrame = CreateFrame("Frame", "ErzbaroneUIManaTickTimer", playerFrame)
-    manaTickFrame:SetPoint("BOTTOM", playerFrame, "BOTTOM", ErzbaroneUI.Frames.swingEndPosition, -4)
+    manaTickFrame:SetPoint("BOTTOM", playerFrame, "BOTTOM", ErzbaroneUI.UnitFrames.swingEndPosition, -4)
     manaTickFrame:SetSize(70, 70)
     manaTickFrame:SetFrameStrata("DIALOG")
     manaTickFrame.texture = manaTickFrame:CreateTexture(nil, "BACKGROUND")
@@ -322,8 +324,8 @@ function ErzbaroneUI.Frames:ActivateManaTickTimer()
         end
 
         local progress = timePassed / 2
-        local newX = ErzbaroneUI.Frames.swingEndPosition -
-            (ErzbaroneUI.Frames.swingEndPosition - ErzbaroneUI.Frames.swingStartPosition) * progress
+        local newX = ErzbaroneUI.UnitFrames.swingEndPosition -
+            (ErzbaroneUI.UnitFrames.swingEndPosition - ErzbaroneUI.UnitFrames.swingStartPosition) * progress
         self:ClearAllPoints()
         self:SetPoint("BOTTOM", playerFrame, "BOTTOM", newX, -4)
     end)

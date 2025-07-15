@@ -1,5 +1,9 @@
 -- Erzbarone main file
 ErzbaroneUI = ErzbaroneUI or {}
+ErzbaroneUI.Static = {
+    OpenSoundID = 850,
+    CloseSoundID = 851,
+}
 
 -- Main event handling
 local eventHooks = {
@@ -34,7 +38,7 @@ frame:SetScript("OnEvent", function(self, event, name)
         ErzbaroneUI.Chat:Initialize()
         ErzbaroneUI.WorldMap:Initialize()
         ErzbaroneUI.Bags:Initialize()
-        ErzbaroneUI.Frames:Initialize()
+        ErzbaroneUI.UnitFrames:Initialize()
         ErzbaroneUI.Bars:Initialize()
         ErzbaroneUI.Minimap:Initialize()
         ErzbaroneUI.Flag:Initialize()
@@ -43,7 +47,7 @@ frame:SetScript("OnEvent", function(self, event, name)
     -- Handle player target changes
     if event == "PLAYER_TARGET_CHANGED" then
         if UnitExists("target") and ErzbaroneUISettings.improvedUnitFrames then
-            ErzbaroneUI.Frames:ReplaceTargetFrame()
+            ErzbaroneUI.UnitFrames:ReplaceTargetFrame()
         end
     end
 
@@ -51,11 +55,11 @@ frame:SetScript("OnEvent", function(self, event, name)
     if event == "UNIT_HEALTH" or event == "UNIT_HEALTH_FREQUENT" or event == "UNIT_MAXHEALTH" and ErzbaroneUISettings.improvedUnitFrames then
         local unit = name or "player"
         if unit == "player" then
-            ErzbaroneUI.Frames:UpdatePlayerHealthColor()
+            ErzbaroneUI.UnitFrames:UpdatePlayerHealthColor()
         end
 
         if unit == "target" then
-            ErzbaroneUI.Frames:UpdateTargetHealthColor()
+            ErzbaroneUI.UnitFrames:UpdateTargetHealthColor()
         end
     end
 end)

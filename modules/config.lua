@@ -3,6 +3,7 @@ if not ErzbaroneUI then
 end
 
 ErzbaroneUI.Config = {}
+ErzbaroneUI.Config.FrameSettings = { width = 320, height = 310, offsetX = 15 }
 
 local defaults = {
     hideVerticalBars = true,
@@ -46,19 +47,22 @@ end
 --- This function creates a frame that will be used to toggle various module settings.
 function ErzbaroneUI.Config:CreateFrame()
     local configurationFrame = CreateFrame("Frame", "ErzbaroneUIConfigFrame", UIParent, "BasicFrameTemplate")
-    configurationFrame:SetSize(320, 310)
+    configurationFrame:SetSize(ErzbaroneUI.Config.FrameSettings.width, ErzbaroneUI.Config.FrameSettings.height)
     configurationFrame:SetPoint("CENTER")
     configurationFrame:SetMovable(true)
     configurationFrame:EnableMouse(true)
     configurationFrame:RegisterForDrag("LeftButton")
     configurationFrame:SetScript("OnDragStart", configurationFrame.StartMoving)
     configurationFrame:SetScript("OnDragStop", configurationFrame.StopMovingOrSizing)
+    configurationFrame:SetScript("OnKeyDown", function(self, key) if key == "ESCAPE" then self:Hide() end end)
+    configurationFrame:SetScript("OnShow", function() PlaySound(ErzbaroneUI.Static.OpenSoundID) end)
+    configurationFrame:SetScript("OnHide", function() PlaySound(ErzbaroneUI.Static.CloseSoundID) end)
     configurationFrame:SetToplevel(true)
     configurationFrame:Hide()
+
     configurationFrame.title = configurationFrame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
     configurationFrame.title:SetPoint("TOPLEFT", configurationFrame.TitleBg, "TOPLEFT", 5, -3)
     configurationFrame.title:SetText("Erzbarone UI")
-
     ErzbaroneUI.Config:VerticalBarsSettings(configurationFrame)
     ErzbaroneUI.Config:ChatButtonSettings(configurationFrame)
     ErzbaroneUI.Config:ImprovedUnitFrames(configurationFrame)
@@ -76,7 +80,7 @@ end
 function ErzbaroneUI.Config:VerticalBarsSettings(parentFrame)
     local verticalBarsToggle = CreateFrame("CheckButton", "ErzbaroneUIVerticalBarsToggle", parentFrame,
         "UICheckButtonTemplate")
-    verticalBarsToggle:SetPoint("TOPLEFT", 15, -30)
+    verticalBarsToggle:SetPoint("TOPLEFT", ErzbaroneUI.Config.FrameSettings.offsetX, -30)
     _G[verticalBarsToggle:GetName() .. "Text"]:SetText("Hide Vertical Bars")
     verticalBarsToggle:SetChecked(ErzbaroneUISettings.hideVerticalBars)
     verticalBarsToggle:SetScript("OnClick", function(self)
@@ -93,7 +97,7 @@ end
 function ErzbaroneUI.Config:ChatButtonSettings(parentFrame)
     local chatButtonToggle = CreateFrame("CheckButton", "ErzbaroneUIChatButtonToggle", parentFrame,
         "UICheckButtonTemplate")
-    chatButtonToggle:SetPoint("TOPLEFT", 15, -60)
+    chatButtonToggle:SetPoint("TOPLEFT", ErzbaroneUI.Config.FrameSettings.offsetX, -60)
     _G[chatButtonToggle:GetName() .. "Text"]:SetText("Hide Chat Buttons")
     chatButtonToggle:SetChecked(ErzbaroneUISettings.hideChatButtons)
     chatButtonToggle:SetScript("OnClick", function(self)
@@ -110,15 +114,15 @@ end
 function ErzbaroneUI.Config:ImprovedUnitFrames(parentFrame)
     local improvedUnitFramesToggle = CreateFrame("CheckButton", "ErzbaroneUIImprovedUnitFramesToggle", parentFrame,
         "UICheckButtonTemplate")
-    improvedUnitFramesToggle:SetPoint("TOPLEFT", 15, -90)
+    improvedUnitFramesToggle:SetPoint("TOPLEFT", ErzbaroneUI.Config.FrameSettings.offsetX, -90)
     _G[improvedUnitFramesToggle:GetName() .. "Text"]:SetText("Improved Unit Frames")
     improvedUnitFramesToggle:SetChecked(ErzbaroneUISettings.improvedUnitFrames)
     improvedUnitFramesToggle:SetScript("OnClick", function(self)
         ErzbaroneUISettings.improvedUnitFrames = self:GetChecked()
         if ErzbaroneUISettings.improvedUnitFrames then
-            ErzbaroneUI.Frames.ActivateImprovedUnitFrames()
+            ErzbaroneUI.UnitFrames.ActivateImprovedUnitFrames()
         else
-            ErzbaroneUI.Frames.DeactivateImprovedUnitFrames()
+            ErzbaroneUI.UnitFrames.DeactivateImprovedUnitFrames()
         end
     end)
 end
@@ -127,7 +131,7 @@ end
 function ErzbaroneUI.Config.HideBagNames(parentFrame)
     local hideBagNamesToggle = CreateFrame("CheckButton", "ErzbaroneUIHideBagNamesToggle", parentFrame,
         "UICheckButtonTemplate")
-    hideBagNamesToggle:SetPoint("TOPLEFT", 15, -120)
+    hideBagNamesToggle:SetPoint("TOPLEFT", ErzbaroneUI.Config.FrameSettings.offsetX, -120)
     _G[hideBagNamesToggle:GetName() .. "Text"]:SetText("Hide Bag Names")
     hideBagNamesToggle:SetChecked(ErzbaroneUISettings.hideBagNames)
     hideBagNamesToggle:SetScript("OnClick", function(self)
@@ -145,7 +149,7 @@ function ErzbaroneUI.Config:HandleExternalMinimapButtons(parentFrame)
     local externalMinimapButtonsToggle = CreateFrame("CheckButton", "ErzbaroneUIExternalMinimapButtonsToggle",
         parentFrame,
         "UICheckButtonTemplate")
-    externalMinimapButtonsToggle:SetPoint("TOPLEFT", 15, -150)
+    externalMinimapButtonsToggle:SetPoint("TOPLEFT", ErzbaroneUI.Config.FrameSettings.offsetX, -150)
     _G[externalMinimapButtonsToggle:GetName() .. "Text"]:SetText("Hide Minimap Buttons")
     externalMinimapButtonsToggle:SetChecked(ErzbaroneUISettings.hideExternalMinimapButtons)
     externalMinimapButtonsToggle:SetScript("OnClick", function(self)
@@ -162,7 +166,7 @@ end
 function ErzbaroneUI.Config:ShowErzbaroneUIFlag(parentFrame)
     local showErzbaroneUIFlagToggle = CreateFrame("CheckButton", "ErzbaroneUIShowFlagToggle", parentFrame,
         "UICheckButtonTemplate")
-    showErzbaroneUIFlagToggle:SetPoint("TOPLEFT", 15, -180)
+    showErzbaroneUIFlagToggle:SetPoint("TOPLEFT", ErzbaroneUI.Config.FrameSettings.offsetX, -180)
     _G[showErzbaroneUIFlagToggle:GetName() .. "Text"]:SetText("Show Erzbarone UI Flag")
     showErzbaroneUIFlagToggle:SetChecked(ErzbaroneUISettings.showErzbaroneUIFlag)
     showErzbaroneUIFlagToggle:SetScript("OnClick", function(self)
@@ -175,15 +179,15 @@ end
 function ErzbaroneUI.Config:ShowUnitClassColors(parentFrame)
     local unitClassColorsToggle = CreateFrame("CheckButton", "ErzbaroneUIUnitClassColorsToggle", parentFrame,
         "UICheckButtonTemplate")
-    unitClassColorsToggle:SetPoint("TOPLEFT", 15, -210)
+    unitClassColorsToggle:SetPoint("TOPLEFT", ErzbaroneUI.Config.FrameSettings.offsetX, -210)
     _G[unitClassColorsToggle:GetName() .. "Text"]:SetText("Use Unit Class Colors")
     unitClassColorsToggle:SetChecked(ErzbaroneUISettings.unitClassColors)
     unitClassColorsToggle:SetScript("OnClick", function(self)
         ErzbaroneUISettings.unitClassColors = self:GetChecked()
         if ErzbaroneUISettings.unitClassColors then
-            ErzbaroneUI.Frames:UpdateBothHealthColors()
+            ErzbaroneUI.UnitFrames:UpdateBothHealthColors()
         else
-            ErzbaroneUI.Frames:SetDefaultHealthBarColor()
+            ErzbaroneUI.UnitFrames:SetDefaultHealthBarColor()
         end
     end)
 end
@@ -191,7 +195,7 @@ end
 function ErzbaroneUI.Config:ShowFiveSecondRuleTimer(parentFrame)
     local fiveSecondRuleToggle = CreateFrame("CheckButton", "ErzbaroneUIFiveSecondRuleToggle", parentFrame,
         "UICheckButtonTemplate")
-    fiveSecondRuleToggle:SetPoint("TOPLEFT", 15, -240)
+    fiveSecondRuleToggle:SetPoint("TOPLEFT", ErzbaroneUI.Config.FrameSettings.offsetX, -240)
     _G[fiveSecondRuleToggle:GetName() .. "Text"]:SetText("Show Five Second Rule Timer")
     fiveSecondRuleToggle:SetChecked(ErzbaroneUISettings.fiveSecondRuleTimer)
     fiveSecondRuleToggle:SetScript("OnClick", function(self)
@@ -204,7 +208,7 @@ end
 function ErzbaroneUI.Config:ShowSwingTimer(parentFrame)
     local swingTimerToggle = CreateFrame("CheckButton", "ErzbaroneUISwingTimerToggle", parentFrame,
         "UICheckButtonTemplate")
-    swingTimerToggle:SetPoint("TOPLEFT", 15, -270)
+    swingTimerToggle:SetPoint("TOPLEFT", ErzbaroneUI.Config.FrameSettings.offsetX, -270)
     _G[swingTimerToggle:GetName() .. "Text"]:SetText("Show Swing Timer")
     swingTimerToggle:SetChecked(ErzbaroneUISettings.swingTimer)
     swingTimerToggle:SetScript("OnClick", function(self)

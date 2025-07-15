@@ -10,7 +10,7 @@ modules\bags.lua
 modules\bars.lua
 modules\chat.lua
 modules\config.lua
-modules\frames.lua
+modules\unitframes.lua
 modules\flag.lua
 modules\minimap.lua
 modules\worldmap.lua
