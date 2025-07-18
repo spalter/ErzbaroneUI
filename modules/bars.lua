@@ -112,7 +112,9 @@ function ErzbaroneUI.Bars:ImproveActionBar()
         for _, region in ipairs(barRegions) do
             if region:GetObjectType() == "Texture" then
                 -- Hides the end caps and other border textures
-                region:SetTexture(nil)
+                if region:GetName() ~= "ExhaustionLevelFillBar" and region:GetName() ~= nil then
+                    region:SetTexture(nil)
+                end
             end
         end
 
