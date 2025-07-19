@@ -4,6 +4,7 @@ ErzbaroneUI.Static = {
     OpenSoundID = 850,
     CloseSoundID = 851,
 }
+ErzbaroneUI.isClassic = false
 
 -- Main event handling
 local eventHooks = {
@@ -24,6 +25,11 @@ end
 
 frame:SetScript("OnEvent", function(self, event, name)
     if event == "ADDON_LOADED" and name == "ErzbaroneUI" then
+        local _, _, _, tocversion = GetBuildInfo()
+        if tocversion < 20000 then -- TOC versions for Classic Era are in the 1xxxx range
+            ErzbaroneUI.isClassic = true
+        end
+
         ErzbaroneUI.Config:SetDamageFont()
 
         SLASH_ERZBARONEUI1 = "/eui"

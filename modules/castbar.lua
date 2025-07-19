@@ -10,7 +10,7 @@ ErzbaroneUI.Castbar.spark = nil
 
 --- Initializes the castbar for the target frame.
 function ErzbaroneUI.Castbar.Initialize()
-    if ErzbaroneUISettings.targetCastbar then
+    if ErzbaroneUISettings.targetCastbar and ErzbaroneUI.isClassic then
         local targetFrame = _G["TargetFrame"]
         if not targetFrame then return end
 

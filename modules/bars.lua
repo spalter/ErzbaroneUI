@@ -153,12 +153,117 @@ function ErzbaroneUI.Bars:ImproveActionBar()
         _G["MainMenuBarRightEndCap"]:Hide()
     end
 
-    ErzbaroneUI.Bars:RepositionBagButtons()
-    ErzbaroneUI.Bars:RepositionMicroButtons()
+    if ErzbaroneUI.isClassic then
+        ErzbaroneUI.Bars:RepositionBagButtonsClassic()
+        ErzbaroneUI.Bars:RepositionMicroButtonsClassic()
+    else
+        ErzbaroneUI.Bars:RepositionBagButtonsMop()
+        ErzbaroneUI.Bars:RepositionMicroButtonsMop()
+    end
+end
+
+-- Repositions the Bag buttons for Mists of Pandaria.
+function ErzbaroneUI.Bars:RepositionBagButtonsMop()
+    local bagBarBackground = CreateFrame("Frame", "ErzbaroneUIBagBarBackground", UIParent)
+    bagBarBackground:SetFrameStrata("BACKGROUND")
+    bagBarBackground:SetPoint("BOTTOMRIGHT", UIParent, "BOTTOMRIGHT", 0, 0)
+    bagBarBackground:SetSize(256, 64)
+    bagBarBackground.texture = bagBarBackground:CreateTexture(nil, "BACKGROUND")
+    bagBarBackground.texture:SetAllPoints()
+    bagBarBackground.texture:SetTexture(ErzbaroneUI.Bars.Static.bagbarTexture)
+
+    local backpackButton = _G["MainMenuBarBackpackButton"]
+    if backpackButton then
+        backpackButton:ClearAllPoints()
+        backpackButton:SetPoint("BOTTOMRIGHT", UIParent, "BOTTOMRIGHT", -6, 5)
+        backpackButton:SetScale(1.2)
+    end
+
+    local otherButtons = {
+        _G["CharacterBag0Slot"],
+        _G["CharacterBag1Slot"],
+        _G["CharacterBag2Slot"],
+        _G["CharacterBag3Slot"],
+    }
+
+    local previousButton = nil
+    local backpackButtonSpacing = 2
+
+    for i, button in ipairs(otherButtons) do
+        if button then
+            button:ClearAllPoints()
+            if i == 1 then
+                button:SetPoint("BOTTOMRIGHT", UIParent, "BOTTOMRIGHT", -50, 4)
+            elseif previousButton then
+                button:SetPoint("RIGHT", previousButton, "LEFT", -backpackButtonSpacing, 0)
+            end
+            previousButton = button
+        end
+    end
+end
+
+-- Repositions and sets up mouseover for the micro buttons in Mists of Pandaria.
+function ErzbaroneUI.Bars:RepositionMicroButtonsMop()
+    local microButtons = {
+        _G["CharacterMicroButton"],
+        _G["SpellbookMicroButton"],
+        _G["TalentMicroButton"],
+        _G["AchievementMicroButton"],
+        _G["QuestLogMicroButton"],
+        _G["GuildMicroButton"],
+        _G["PVPMicroButton"],
+        _G["LFGMicroButton"],
+        _G["CollectionsMicroButton"],
+        _G["StoreMicroButton"],
+        _G["EJMicroButton"],
+        _G["MainMenuMicroButton"],
+    }
+
+    local container = CreateFrame("Frame", "ErzbaroneUIMicroButtonContainer", UIParent)
+    container:SetSize(180, 40) -- Adjust size as needed
+    container:SetPoint("BOTTOMRIGHT", UIParent, "BOTTOMRIGHT", -232, 6)
+    container:SetFrameStrata("MEDIUM")
+
+    local previousButton = nil
+    local buttonSpacing = -2
+
+    for i, button in ipairs(microButtons) do
+        if button then
+            button:SetParent(container)
+            button:ClearAllPoints()
+
+            if i == 1 then
+                button:SetPoint("LEFT", container, "LEFT", 0, 0)
+            else
+                button:SetPoint("LEFT", previousButton, "RIGHT", buttonSpacing, 0)
+            end
+            button:SetScale(0.8)
+            previousButton = button
+
+            button:SetScript("OnEnter", function(self)
+                container:SetAlpha(1)
+            end)
+            button:SetScript("OnLeave", function(self)
+                container:SetAlpha(0)
+            end)
+        else
+            microButtons.remove(i)
+        end
+    end
+
+    container:SetAlpha(0)
+
+    container:SetScript("OnEnter", function(self)
+        self:SetAlpha(1)
+    end)
+
+    container:SetScript("OnLeave", function(self)
+        self:SetAlpha(0)
+    end)
 end
 
 --- Repositions the bag and keyring buttons to the bottom right corner.
-function ErzbaroneUI.Bars:RepositionBagButtons()
+function ErzbaroneUI.Bars:RepositionBagButtonsClassic()
     local previousButton = nil
 
     local bagBarBackground = CreateFrame("Frame", "ErzbaroneUIBagBarBackground", UIParent)
@@ -204,7 +309,7 @@ function ErzbaroneUI.Bars:RepositionBagButtons()
 end
 
 --- Repositions and sets up mouseover for the micro buttons.
-function ErzbaroneUI.Bars:RepositionMicroButtons()
+function ErzbaroneUI.Bars:RepositionMicroButtonsClassic()
     local microButtons = {
         _G["CharacterMicroButton"],
         _G["SpellbookMicroButton"],
