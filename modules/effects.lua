@@ -5,6 +5,10 @@ end
 ErzbaroneUI.Effects = {}
 
 function ErzbaroneUI.Effects:ActivateVignette()
+    if not ErzbaroneUISettings.vignette then
+        return
+    end
+
     local vignetteFrame = _G["ErzbaroneUIVignette"]
     if vignetteFrame then
         vignetteFrame:Show()
