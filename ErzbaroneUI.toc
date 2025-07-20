@@ -11,9 +11,10 @@ modules\bars.lua
 modules\castbar.lua
 modules\chat.lua
 modules\config.lua
-modules\unitframes.lua
+modules\effects.lua
 modules\flag.lua
 modules\minimap.lua
+modules\unitframes.lua
 modules\worldmap.lua
 
 # Core

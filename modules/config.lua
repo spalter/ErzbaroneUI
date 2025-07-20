@@ -3,7 +3,7 @@ if not ErzbaroneUI then
 end
 
 ErzbaroneUI.Config = {}
-ErzbaroneUI.Config.FrameSettings = { width = 320, height = 340, offsetX = 15 }
+ErzbaroneUI.Config.FrameSettings = { width = 320, height = 370, offsetX = 15 }
 
 local defaults = {
     improvedActionBars = true,
@@ -16,6 +16,7 @@ local defaults = {
     fiveSecondRuleTimer = true,
     swingTimer = true,
     targetCastbar = true,
+    vignette = false,
 }
 
 --- Initializes the configuration settings for ErzbaroneUI.
@@ -79,6 +80,7 @@ function ErzbaroneUI.Config:CreateFrame()
     ErzbaroneUI.Config:ShowFiveSecondRuleTimer(configurationFrame)
     ErzbaroneUI.Config:ShowSwingTimer(configurationFrame)
     ErzbaroneUI.Config:ShowTargetCastbar(configurationFrame)
+    ErzbaroneUI.Config:ShowVignette(configurationFrame)
 
     ErzbaroneUI.Config.Frame = configurationFrame
 end
@@ -227,6 +229,23 @@ function ErzbaroneUI.Config:ShowTargetCastbar(parentFrame)
     targetCastbarToggle:SetScript("OnClick", function(self)
         ErzbaroneUISettings.targetCastbar = self:GetChecked()
         ErzbaroneUI.Config:Reload()
+    end)
+end
+
+--- Creates the vignette effect toggle in the configuration frame.
+function ErzbaroneUI.Config:ShowVignette(parentFrame)
+    local vignetteToggle = CreateFrame("CheckButton", "ErzbaroneUIVignetteToggle", parentFrame,
+        "UICheckButtonTemplate")
+    vignetteToggle:SetPoint("TOPLEFT", ErzbaroneUI.Config.FrameSettings.offsetX, -330)
+    _G[vignetteToggle:GetName() .. "Text"]:SetText("Show Vignette Effect")
+    vignetteToggle:SetChecked(ErzbaroneUISettings.vignette)
+    vignetteToggle:SetScript("OnClick", function(self)
+        ErzbaroneUISettings.vignette = self:GetChecked()
+        if ErzbaroneUISettings.vignette then
+            ErzbaroneUI.Effects:ActivateVignette()
+        else
+            ErzbaroneUI.Effects:DeactivateVignette()
+        end
     end)
 end
 

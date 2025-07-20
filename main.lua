@@ -51,6 +51,7 @@ frame:SetScript("OnEvent", function(self, event, name)
         ErzbaroneUI.Bars:Initialize()
         ErzbaroneUI.Minimap:Initialize()
         ErzbaroneUI.Flag:Initialize()
+        ErzbaroneUI.Effects:ActivateVignette()
     end
 
     -- Handle exiting vehicle
