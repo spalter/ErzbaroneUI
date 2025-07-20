@@ -4,7 +4,8 @@ end
 
 ErzbaroneUI.Bars = {}
 ErzbaroneUI.Bars.Static = {
-    mainBarTexture = "Interface\\AddOns\\ErzbaroneUI\\textures\\mainbar",
+    mainBarTexture = "Interface\\AddOns\\ErzbaroneUI\\textures\\mainbar_no_xp",
+    mainBarTextureXp = "Interface\\AddOns\\ErzbaroneUI\\textures\\mainbar",
     bagbarTexture = "Interface\\AddOns\\ErzbaroneUI\\textures\\bagbar",
     actionBarButtonNames = {
         "ActionButton",
@@ -17,7 +18,7 @@ ErzbaroneUI.Bars.Static = {
 function ErzbaroneUI.Bars:Initialize()
     if ErzbaroneUISettings and ErzbaroneUISettings.improvedActionBars then
         ErzbaroneUI.Bars:HideVerticalBars()
-        ErzbaroneUI.Bars:ImproveActionBar()
+        ErzbaroneUI.Bars:ImproveActionBarXp()
     else
         ErzbaroneUI.Bars:ShowVerticalBars()
     end
@@ -86,8 +87,25 @@ function ErzbaroneUI.Bars:ShowVerticalBars()
     end
 end
 
+function ErzbaroneUI.Bars:CanEarnXP()
+    local expansion = GetExpansionLevel()
+    local maxLevel
+    if expansion >= 3 then
+        maxLevel = 85
+    elseif expansion == 2 then
+        maxLevel = 80
+    elseif expansion == 1 then
+        maxLevel = 70
+    else
+        maxLevel = 60
+    end
+
+    return UnitLevel("player") < maxLevel
+end
+
 -- Improves the main action bar layout and appearance.
-function ErzbaroneUI.Bars:ImproveActionBar()
+function ErzbaroneUI.Bars:ImproveActionBarXp()
+    local canEarnXP = ErzbaroneUI.Bars:CanEarnXP()
     local improvedActionBarFrame = CreateFrame("Frame", "ErzbaroneUIImprovedActionBar", UIParent,
         "SecureHandlerStateTemplate")
     improvedActionBarFrame:SetFrameStrata("BACKGROUND")
@@ -95,7 +113,11 @@ function ErzbaroneUI.Bars:ImproveActionBar()
     improvedActionBarFrame:SetSize(1024, 128)
     improvedActionBarFrame.texture = improvedActionBarFrame:CreateTexture(nil, "BACKGROUND")
     improvedActionBarFrame.texture:SetAllPoints()
-    improvedActionBarFrame.texture:SetTexture(ErzbaroneUI.Bars.Static.mainBarTexture)
+    if canEarnXP then
+        improvedActionBarFrame.texture:SetTexture(ErzbaroneUI.Bars.Static.mainBarTextureXp)
+    else
+        improvedActionBarFrame.texture:SetTexture(ErzbaroneUI.Bars.Static.mainBarTexture)
+    end
 
     local xpBar = _G["MainMenuExpBar"]
     if xpBar then
@@ -121,17 +143,20 @@ function ErzbaroneUI.Bars:ImproveActionBar()
         xpBar:SetStatusBarTexture("Interface\\TargetingFrame\\UI-StatusBar")
     end
 
+    local leftBarOffsetY = canEarnXP and 4 or 2
+    local rightBarOffsetY = canEarnXP and -2 or 0
+
     local mainBar = _G["MainMenuBar"]
     mainBar:ClearAllPoints()
     mainBar:SetPoint("BOTTOM", UIParent, "BOTTOM", 110, 0)
 
     local bottomLeftBar = _G["MultiBarBottomLeft"]
     bottomLeftBar:ClearAllPoints()
-    bottomLeftBar:SetPoint("BOTTOM", mainBar, "TOP", -254, 4)
+    bottomLeftBar:SetPoint("BOTTOM", mainBar, "TOP", -254, leftBarOffsetY)
 
     local bottomRightBar = _G["MultiBarBottomRight"]
     bottomRightBar:ClearAllPoints()
-    bottomRightBar:SetPoint("LEFT", bottomLeftBar, "RIGHT", 44, -2)
+    bottomRightBar:SetPoint("LEFT", bottomLeftBar, "RIGHT", 44, rightBarOffsetY)
     ErzbaroneUI.Bars:ArrangeBottomRightBar(bottomRightBar)
 
     local artFrame = _G["MainMenuBarArtFrame"]
@@ -140,6 +165,13 @@ function ErzbaroneUI.Bars:ImproveActionBar()
             if region:GetObjectType() == "Texture" then
                 region:SetAlpha(0)
             end
+        end
+    end
+
+    if not canEarnXP then
+        local xpBarTexture = _G["MainMenuBarMaxLevelBar"]
+        if xpBarTexture then
+            xpBarTexture:SetAlpha(0)
         end
     end
 
