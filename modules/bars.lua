@@ -18,7 +18,7 @@ ErzbaroneUI.Bars.Static = {
 function ErzbaroneUI.Bars:Initialize()
     if ErzbaroneUISettings and ErzbaroneUISettings.improvedActionBars then
         ErzbaroneUI.Bars:HideVerticalBars()
-        ErzbaroneUI.Bars:ImproveActionBarXp()
+        ErzbaroneUI.Bars:ImproveActionBar()
     else
         ErzbaroneUI.Bars:ShowVerticalBars()
     end
@@ -104,7 +104,7 @@ function ErzbaroneUI.Bars:CanEarnXP()
 end
 
 -- Improves the main action bar layout and appearance.
-function ErzbaroneUI.Bars:ImproveActionBarXp()
+function ErzbaroneUI.Bars:ImproveActionBar()
     local canEarnXP = ErzbaroneUI.Bars:CanEarnXP()
     local improvedActionBarFrame = CreateFrame("Frame", "ErzbaroneUIImprovedActionBar", UIParent,
         "SecureHandlerStateTemplate")
@@ -259,7 +259,7 @@ function ErzbaroneUI.Bars:RepositionMicroButtonsMop()
 
     local container = CreateFrame("Frame", "ErzbaroneUIMicroButtonContainer", UIParent)
     container:SetSize(180, 40) -- Adjust size as needed
-    container:SetPoint("BOTTOMRIGHT", UIParent, "BOTTOMRIGHT", -232, 6)
+    container:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", 6, 6)
     container:SetFrameStrata("MEDIUM")
 
     local previousButton = nil
@@ -359,7 +359,7 @@ function ErzbaroneUI.Bars:RepositionMicroButtonsClassic()
 
     local container = CreateFrame("Frame", "ErzbaroneUIMicroButtonContainer", UIParent)
     container:SetSize(180, 40) -- Adjust size as needed
-    container:SetPoint("BOTTOMRIGHT", UIParent, "BOTTOMRIGHT", -190, 8)
+    container:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", 8, 8)
     container:SetFrameStrata("MEDIUM")
 
     local previousButton = nil
