@@ -5,6 +5,7 @@ end
 ErzbaroneUI.UnitFrames = {}
 ErzbaroneUI.UnitFrames.swingStartPosition = -8
 ErzbaroneUI.UnitFrames.swingEndPosition = 108
+ErzbaroneUI.UnitFrames.healthBarOrigin = {}
 
 --- Initializes the frame modifications.
 function ErzbaroneUI.UnitFrames:Initialize()
@@ -36,11 +37,18 @@ end
 
 --- Repositions the Player and Target frames to the bottom center of the screen.
 function ErzbaroneUI.UnitFrames:CenterFrames()
-    PlayerFrame:ClearAllPoints()
-    PlayerFrame:SetPoint("BOTTOM", UIParent, "BOTTOM", -300, 150)
+    local playerFrame = _G["PlayerFrame"]
+    playerFrame:ClearAllPoints()
+    playerFrame:SetPoint("BOTTOM", UIParent, "BOTTOM", -300, 150)
 
-    TargetFrame:ClearAllPoints()
-    TargetFrame:SetPoint("BOTTOM", UIParent, "BOTTOM", 300, 150)
+    local targetFrame = _G["TargetFrame"]
+    targetFrame:ClearAllPoints()
+    targetFrame:SetPoint("BOTTOM", UIParent, "BOTTOM", 300, 150)
+end
+
+function ErzbaroneUI.UnitFrames:RestorePlayerFrame()
+    local playerFrameHealthBar = _G["PlayerFrameHealthBar"]
+    playerFrameHealthBar:SetHeight(ErzbaroneUI.UnitFrames.healthBarOrigin.height or 12)
 end
 
 --- Customizes the appearance of the Player frame.
@@ -57,6 +65,7 @@ function ErzbaroneUI.UnitFrames:ReplacePlayerFrame()
         playerFrameHealthBar:ClearAllPoints()
         C_Timer.After(0.1, function()
             playerFrameHealthBar:SetPoint("TOPLEFT", PlayerFrame, "TOPLEFT", 106, -22)
+            ErzbaroneUI.UnitFrames.healthBarOrigin.height = playerFrameHealthBar:GetHeight()
             playerFrameHealthBar:SetHeight(30)
             playerFrameHealthBarText:ClearAllPoints()
             playerFrameHealthBarText:SetPoint("CENTER", playerFrameHealthBar, "CENTER", 0, -6)

@@ -236,6 +236,8 @@ end
 
 -- Repositions and sets up mouseover for the micro buttons in Mists of Pandaria.
 function ErzbaroneUI.Bars:RepositionMicroButtonsMop()
+    local playerLevel = UnitLevel("player")
+
     local microButtons = {
         _G["CharacterMicroButton"],
         _G["SpellbookMicroButton"],
@@ -250,6 +252,10 @@ function ErzbaroneUI.Bars:RepositionMicroButtonsMop()
         _G["EJMicroButton"],
         _G["MainMenuMicroButton"],
     }
+
+    if playerLevel < 10 then
+        table.remove(microButtons, 3)
+    end
 
     local container = CreateFrame("Frame", "ErzbaroneUIMicroButtonContainer", UIParent)
     container:SetSize(180, 40) -- Adjust size as needed
@@ -278,8 +284,6 @@ function ErzbaroneUI.Bars:RepositionMicroButtonsMop()
             button:SetScript("OnLeave", function(self)
                 container:SetAlpha(0)
             end)
-        else
-            microButtons.remove(i)
         end
     end
 

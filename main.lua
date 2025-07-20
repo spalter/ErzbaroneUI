@@ -16,6 +16,8 @@ local eventHooks = {
     "UNIT_MAXHEALTH",
     "PLAYER_REGEN_DISABLED",
     "PLAYER_REGEN_ENABLED",
+    "UNIT_EXITED_VEHICLE",
+    "UNIT_ENTERED_VEHICLE"
 }
 
 local frame = CreateFrame("Frame")
@@ -49,6 +51,23 @@ frame:SetScript("OnEvent", function(self, event, name)
         ErzbaroneUI.Bars:Initialize()
         ErzbaroneUI.Minimap:Initialize()
         ErzbaroneUI.Flag:Initialize()
+    end
+
+    -- Handle exiting vehicle
+    if event == "UNIT_EXITED_VEHICLE" then
+        if name == "player" then
+            C_Timer.After(0.5, function()
+                print("Exiting vehicle, restoring player frame")
+                ErzbaroneUI.UnitFrames:CenterFrames()
+                ErzbaroneUI.UnitFrames:ReplacePlayerFrame()
+            end)
+        end
+    end
+
+    if event == "UNIT_ENTERED_VEHICLE" then
+        if name == "player" then
+            ErzbaroneUI.UnitFrames:RestorePlayerFrame()
+        end
     end
 
     -- Handle player target changes
