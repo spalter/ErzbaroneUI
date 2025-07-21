@@ -17,8 +17,11 @@ ErzbaroneUI.Bars.Static = {
 -- Initializes the bar modifications.
 function ErzbaroneUI.Bars:Initialize()
     if ErzbaroneUISettings and ErzbaroneUISettings.improvedActionBars then
-        ErzbaroneUI.Bars:HideVerticalBars()
         ErzbaroneUI.Bars:ImproveActionBar()
+    end
+
+    if ErzbaroneUISettings and ErzbaroneUISettings.hideVerticalBars then
+        ErzbaroneUI.Bars:HideVerticalBars()
     else
         ErzbaroneUI.Bars:ShowVerticalBars()
     end

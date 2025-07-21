@@ -3,6 +3,7 @@ ErzbaroneUI = ErzbaroneUI or {}
 ErzbaroneUI.Static = {
     OpenSoundID = 850,
     CloseSoundID = 851,
+    LightClickSoundID = 856,
 }
 ErzbaroneUI.isClassic = false
 
