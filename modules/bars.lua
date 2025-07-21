@@ -104,20 +104,9 @@ function ErzbaroneUI.Bars:ShowVerticalBars()
     end
 end
 
+-- Checks if the player can earn experience points based on their level and expansion.
 function ErzbaroneUI.Bars:CanEarnXP()
-    local expansion = GetExpansionLevel()
-    local maxLevel
-    if expansion >= 3 then
-        maxLevel = 85
-    elseif expansion == 2 then
-        maxLevel = 80
-    elseif expansion == 1 then
-        maxLevel = 70
-    else
-        maxLevel = 60
-    end
-
-    return UnitLevel("player") < maxLevel
+    return UnitLevel("player") < GetMaxPlayerLevel()
 end
 
 -- Improves the main action bar layout and appearance.
