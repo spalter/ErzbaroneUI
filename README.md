@@ -19,6 +19,7 @@ To open the configuration, you can click on the ErzbaroneUI flag beneath the Min
 - Swing timer for main hand
 - Target Castbar
 - Bag Names removed
+- Vignette Effect (Optional)
 
 ## Screenshots
 
