@@ -13,9 +13,14 @@ ErzbaroneUI.Bars.Static = {
         "MultiBarBottomRightButton",
     },
 }
+ErzbaroneUI.Bars.Vars = {
+    darkModeDetected = false,
+}
 
 -- Initializes the bar modifications.
 function ErzbaroneUI.Bars:Initialize()
+    ErzbaroneUI.Bars:DetectDarkModeAddon()
+
     if ErzbaroneUISettings and ErzbaroneUISettings.improvedActionBars then
         ErzbaroneUI.Bars:ImproveActionBar()
     end
@@ -24,6 +29,15 @@ function ErzbaroneUI.Bars:Initialize()
         ErzbaroneUI.Bars:HideVerticalBars()
     else
         ErzbaroneUI.Bars:ShowVerticalBars()
+    end
+end
+
+-- Detects if the DarkMode addon is loaded and sets a variable accordingly.
+function ErzbaroneUI.Bars:DetectDarkModeAddon()
+    if C_AddOns.IsAddOnLoaded("DarkMode") then
+        ErzbaroneUI.Bars.Vars.darkModeDetected = true
+    else
+        ErzbaroneUI.Bars.Vars.darkModeDetected = false
     end
 end
 
@@ -147,7 +161,7 @@ function ErzbaroneUI.Bars:ImproveActionBar()
     end
 
     local leftBarOffsetY = canEarnXP and 4 or 2
-    local rightBarOffsetY = canEarnXP and -2 or 4
+    local rightBarOffsetY = canEarnXP and -2 or -2
 
     local mainBar = _G["MainMenuBar"]
     mainBar:ClearAllPoints()
@@ -195,6 +209,16 @@ function ErzbaroneUI.Bars:ImproveActionBar()
         ErzbaroneUI.Bars:RepositionBagButtonsMop()
         ErzbaroneUI.Bars:RepositionMicroButtonsMop()
     end
+
+    C_Timer.After(0.5, function()
+        if ErzbaroneUI.Bars.Vars.darkModeDetected then
+            local playerFrameTexture = _G["PlayerFrameTexture"]
+            if playerFrameTexture then
+                local r, g, b = playerFrameTexture:GetVertexColor()
+                improvedActionBarFrame.texture:SetVertexColor(r, g, b)
+            end
+        end
+    end)
 end
 
 -- Repositions the Bag buttons for Mists of Pandaria.
@@ -405,7 +429,9 @@ end
 function ErzbaroneUI.Bars:ArrangeBottomRightBar(barFrame)
     if not barFrame then return end
 
+    local canEarnXP = ErzbaroneUI.Bars:CanEarnXP()
     local buttonSpacing = 6 -- The space between buttons
+    local verticalSpacing = canEarnXP and -18 or -12 -- Adjust vertical spacing based on XP bar presence
     for i = 1, 12 do
         local button = _G["MultiBarBottomRightButton" .. i]
         if button then
@@ -421,7 +447,7 @@ function ErzbaroneUI.Bars:ArrangeBottomRightBar(barFrame)
             else
                 local buttonAbove = _G["MultiBarBottomRightButton" .. (i - 6)]
                 if i == 7 then
-                    button:SetPoint("TOPLEFT", buttonAbove, "BOTTOMLEFT", 0, -18)
+                    button:SetPoint("TOPLEFT", buttonAbove, "BOTTOMLEFT", 0, verticalSpacing)
                 else
                     local previousButton = _G["MultiBarBottomRightButton" .. (i - 1)]
                     button:SetPoint("LEFT", previousButton, "RIGHT", buttonSpacing, 0)
