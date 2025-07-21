@@ -1,7 +1,7 @@
 ## Interface: 11506, 11507, 50500
 ## Title: ErzbaroneUI
 ## Author: spalt_er
-## Version: 0.9.2
+## Version: 0.9.3
 ## Notes: A World of Warcraft Interface
 ## SavedVariables: ErzbaroneUISettings
 
@@ -15,6 +15,7 @@ modules\effects.lua
 modules\flag.lua
 modules\minimap.lua
 modules\unitframes.lua
+modules\utils.lua
 modules\worldmap.lua
 
 # Core

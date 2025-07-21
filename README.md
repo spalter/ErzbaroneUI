@@ -20,6 +20,8 @@ To open the configuration, you can click on the ErzbaroneUI flag beneath the Min
 - Target Castbar
 - Bag Names removed
 - Vignette Effect (Optional)
+- Auto sell grey items
+- Auto repair
 
 ## Screenshots
 

@@ -17,7 +17,9 @@ local eventHooks = {
     "PLAYER_REGEN_DISABLED",
     "PLAYER_REGEN_ENABLED",
     "UNIT_EXITED_VEHICLE",
-    "UNIT_ENTERED_VEHICLE"
+    "UNIT_ENTERED_VEHICLE",
+    "DISPLAY_SIZE_CHANGED",
+    "MERCHANT_SHOW"
 }
 
 local frame = CreateFrame("Frame")
@@ -57,7 +59,7 @@ frame:SetScript("OnEvent", function(self, event, name)
     -- Handle exiting vehicle
     if event == "UNIT_EXITED_VEHICLE" then
         if name == "player" then
-            C_Timer.After(0.5, function()
+            C_Timer.After(0.5, function() -- Delay to ensure the player frame is restored after exiting vehicle
                 print("Exiting vehicle, restoring player frame")
                 ErzbaroneUI.UnitFrames:CenterFrames()
                 ErzbaroneUI.UnitFrames:ReplacePlayerFrame()
@@ -65,6 +67,7 @@ frame:SetScript("OnEvent", function(self, event, name)
         end
     end
 
+    -- Handle entering vehicle to reset the healthbar size
     if event == "UNIT_ENTERED_VEHICLE" then
         if name == "player" then
             ErzbaroneUI.UnitFrames:RestorePlayerFrame()
@@ -88,5 +91,16 @@ frame:SetScript("OnEvent", function(self, event, name)
         if unit == "target" then
             ErzbaroneUI.UnitFrames:UpdateTargetHealthColor()
         end
+    end
+
+    -- Handle display size changes for the vignette effect
+    if event == "DISPLAY_SIZE_CHANGED" then
+        ErzbaroneUI.Effects:UpdateVignette()
+    end
+
+    -- Handle merchant show event to auto-sell grey items
+    if event == "MERCHANT_SHOW" then
+        ErzbaroneUI.Utils:AutoSellGreyItems()
+        ErzbaroneUI.Utils:AutoRepair()
     end
 end)

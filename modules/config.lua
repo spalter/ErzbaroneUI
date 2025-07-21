@@ -3,7 +3,7 @@ if not ErzbaroneUI then
 end
 
 ErzbaroneUI.Config = {}
-ErzbaroneUI.Config.FrameSettings = { width = 320, height = 370, offsetX = 15 }
+ErzbaroneUI.Config.FrameSettings = { width = 320, height = 430, offsetX = 15 }
 
 local defaults = {
     improvedActionBars = true,
@@ -17,6 +17,8 @@ local defaults = {
     swingTimer = true,
     targetCastbar = true,
     vignette = false,
+    autoSellGreyItems = true,
+    autoRepair = true,
 }
 
 --- Initializes the configuration settings for ErzbaroneUI.
@@ -81,6 +83,8 @@ function ErzbaroneUI.Config:CreateFrame()
     ErzbaroneUI.Config:ShowSwingTimer(configurationFrame)
     ErzbaroneUI.Config:ShowTargetCastbar(configurationFrame)
     ErzbaroneUI.Config:ShowVignette(configurationFrame)
+    ErzbaroneUI.Config:ShowAutoSellItems(configurationFrame)
+    ErzbaroneUI.Config:ShowAutoRepair(configurationFrame)
 
     ErzbaroneUI.Config.Frame = configurationFrame
 end
@@ -246,6 +250,28 @@ function ErzbaroneUI.Config:ShowVignette(parentFrame)
         else
             ErzbaroneUI.Effects:DeactivateVignette()
         end
+    end)
+end
+
+function ErzbaroneUI.Config:ShowAutoSellItems(parentFrame)
+    local autoSellToggle = CreateFrame("CheckButton", "ErzbaroneUIAutoSellToggle", parentFrame,
+        "UICheckButtonTemplate")
+    autoSellToggle:SetPoint("TOPLEFT", ErzbaroneUI.Config.FrameSettings.offsetX, -360)
+    _G[autoSellToggle:GetName() .. "Text"]:SetText("Auto Sell Grey Items")
+    autoSellToggle:SetChecked(ErzbaroneUISettings.autoSellGreyItems)
+    autoSellToggle:SetScript("OnClick", function(self)
+        ErzbaroneUISettings.autoSellGreyItems = self:GetChecked()
+    end)
+end
+
+function ErzbaroneUI.Config:ShowAutoRepair(parentFrame)
+    local autoRepairToggle = CreateFrame("CheckButton", "ErzbaroneUIAutoRepairToggle", parentFrame,
+        "UICheckButtonTemplate")
+    autoRepairToggle:SetPoint("TOPLEFT", ErzbaroneUI.Config.FrameSettings.offsetX, -390)
+    _G[autoRepairToggle:GetName() .. "Text"]:SetText("Auto Repair Items")
+    autoRepairToggle:SetChecked(ErzbaroneUISettings.autoRepair)
+    autoRepairToggle:SetScript("OnClick", function(self)
+        ErzbaroneUISettings.autoRepair = self:GetChecked()
     end)
 end
 

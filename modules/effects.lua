@@ -4,6 +4,7 @@ end
 
 ErzbaroneUI.Effects = {}
 
+-- Create a vignette effect that darkens the screen edges
 function ErzbaroneUI.Effects:ActivateVignette()
     if not ErzbaroneUISettings.vignette then
         return
@@ -16,7 +17,7 @@ function ErzbaroneUI.Effects:ActivateVignette()
     end
 
     local vignetteFrame = CreateFrame("Frame", "ErzbaroneUIVignette", UIParent)
-    local screenSize = {UIParent:GetWidth(), UIParent:GetHeight()}
+    local screenSize = { UIParent:GetWidth(), UIParent:GetHeight() }
     vignetteFrame:SetSize(screenSize[1], screenSize[2])
     vignetteFrame:SetPoint("CENTER", UIParent, "CENTER")
     vignetteFrame:SetFrameStrata("HIGH")
@@ -29,6 +30,16 @@ function ErzbaroneUI.Effects:ActivateVignette()
     vignetteFrame.texture:SetTexture("Interface\\AddOns\\ErzbaroneUI\\Textures\\vignette")
 end
 
+-- Update the vignette effect size when the display size changes
+function ErzbaroneUI.Effects:UpdateVignette()
+    local vignetteFrame = _G["ErzbaroneUIVignette"]
+    if vignetteFrame then
+        vignetteFrame.texture:SetAllPoints(vignetteFrame)
+        vignetteFrame:SetSize(UIParent:GetWidth(), UIParent:GetHeight())
+    end
+end
+
+-- Deactivate the vignette effect
 function ErzbaroneUI.Effects:DeactivateVignette()
     local vignetteFrame = _G["ErzbaroneUIVignette"]
     if vignetteFrame then
