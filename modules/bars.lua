@@ -147,7 +147,7 @@ function ErzbaroneUI.Bars:ImproveActionBar()
     end
 
     local leftBarOffsetY = canEarnXP and 4 or 2
-    local rightBarOffsetY = canEarnXP and -2 or 0
+    local rightBarOffsetY = canEarnXP and -2 or 4
 
     local mainBar = _G["MainMenuBar"]
     mainBar:ClearAllPoints()
