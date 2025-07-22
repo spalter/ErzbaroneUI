@@ -162,6 +162,10 @@ function ErzbaroneUI.UnitFrames:UpdateTargetHealthColor()
     if targetFrameHealthBar and color ~= nil then
         targetFrameHealthBar:SetStatusBarColor(color.r, color.g, color.b)
     end
+
+    if (UnitIsTapDenied("target")) then
+        targetFrameHealthBar:SetStatusBarColor(0.5, 0.5, 0.5) -- Grey color for tapped units
+    end
 end
 
 --- Updates both Player and Target health bar colors to match their respective class colors.

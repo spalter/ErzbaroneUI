@@ -20,7 +20,8 @@ local eventHooks = {
     "UNIT_EXITED_VEHICLE",
     "UNIT_ENTERED_VEHICLE",
     "DISPLAY_SIZE_CHANGED",
-    "MERCHANT_SHOW"
+    "MERCHANT_SHOW",
+    "CINEMATIC_STOP"
 }
 
 local frame = CreateFrame("Frame")
@@ -103,5 +104,11 @@ frame:SetScript("OnEvent", function(self, event, name)
     if event == "MERCHANT_SHOW" then
         ErzbaroneUI.Utils:AutoSellGreyItems()
         ErzbaroneUI.Utils:AutoRepair()
+    end
+
+    -- Handle cutscene end
+    if event == "CINEMATIC_STOP" then
+        print("Cutscene ended")
+        ErzbaroneUI.Bars:ImproveActionBar()
     end
 end)
