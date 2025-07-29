@@ -20,6 +20,7 @@ local defaults = {
     autoSellGreyItems = true,
     autoRepair = true,
     hideVerticalBars = true,
+    rangeCheckBars = true,
 }
 
 --- Initializes the configuration settings for ErzbaroneUI.
@@ -129,6 +130,7 @@ function ErzbaroneUI.Config:CreateFrame()
 
     ErzbaroneUI.Config:VerticalBarsSettings(actionBarsSettings)
     ErzbaroneUI.Config:ShowVerticalBarsSettings(actionBarsSettings)
+    ErzbaroneUI.Config:ShowRangeCheckBarsSettings(actionBarsSettings)
 
     SelectTab(1)
 
@@ -332,6 +334,19 @@ function ErzbaroneUI.Config:ShowVerticalBarsSettings(parentFrame)
     hideVerticalBarsToggle:SetChecked(ErzbaroneUISettings.hideVerticalBars)
     hideVerticalBarsToggle:SetScript("OnClick", function(self)
         ErzbaroneUISettings.hideVerticalBars = self:GetChecked()
+        ErzbaroneUI.Config:Reload()
+    end)
+end
+
+-- Creates the range check bars settings section in the configuration frame.
+function ErzbaroneUI.Config:ShowRangeCheckBarsSettings(parentFrame)
+    local rangeCheckBarsToggle = CreateFrame("CheckButton", "ErzbaroneUIRangeCheckBarsToggle", parentFrame,
+        "UICheckButtonTemplate")
+    rangeCheckBarsToggle:SetPoint("TOPLEFT", ErzbaroneUI.Config.FrameSettings.offsetX, -130)
+    _G[rangeCheckBarsToggle:GetName() .. "Text"]:SetText("Enable Range Check on Action Bars")
+    rangeCheckBarsToggle:SetChecked(ErzbaroneUISettings.rangeCheckBars)
+    rangeCheckBarsToggle:SetScript("OnClick", function(self)
+        ErzbaroneUISettings.rangeCheckBars = self:GetChecked()
         ErzbaroneUI.Config:Reload()
     end)
 end

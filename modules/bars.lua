@@ -20,6 +20,7 @@ ErzbaroneUI.Bars.Vars = {
 -- Initializes the bar modifications.
 function ErzbaroneUI.Bars:Initialize()
     ErzbaroneUI.Bars:DetectDarkModeAddon()
+    ErzbaroneUI.Bars:HookActionButtonUpdate()
 
     if ErzbaroneUISettings and ErzbaroneUISettings.improvedActionBars then
         ErzbaroneUI.Bars:ImproveActionBar()
@@ -38,6 +39,111 @@ function ErzbaroneUI.Bars:DetectDarkModeAddon()
         ErzbaroneUI.Bars.Vars.darkModeDetected = true
     else
         ErzbaroneUI.Bars.Vars.darkModeDetected = false
+    end
+end
+
+-- Tints the action button red if the target is out of range.
+function ErzbaroneUI.Bars:HookActionButtonUpdate()
+    if not ErzbaroneUISettings.rangeCheckBars then return end
+
+    local buttonsToHook = {
+        "ActionButton",
+        "MultiBarBottomLeftButton",
+        "MultiBarBottomRightButton",
+        "MultiBarRightButton",
+        "MultiBarLeftButton"
+    }
+
+    -- Helper function to check if an action should be range checked
+    local function RangeColorApplicable(action)
+        if not action then return false end
+
+        local actionType, id = GetActionInfo(action)
+
+        -- Only check spells and some items
+        if actionType == "spell" then
+            -- Check if spell requires a target
+            local spellInfo = C_Spell.GetSpellInfo(id)
+            if not spellInfo then return false end
+
+            -- Check if spell has a range (if no range, it's likely a self-cast or area spell)
+            if not C_Spell.SpellHasRange(spellInfo.name) then return false end
+
+            -- Check if spell requires a hostile target
+            local requiresHostileTarget = C_Spell.IsSpellHarmful(spellInfo.name)
+            local requiresFriendlyTarget = C_Spell.IsSpellHelpful(spellInfo.name) -- Fixed: was IsSpellHarmful
+
+            -- If spell requires hostile target but current target is friendly, skip
+            if requiresHostileTarget and UnitExists("target") and not UnitCanAttack("player", "target") then
+                return false
+            end
+
+            -- If spell requires friendly target but current target is hostile, skip
+            if requiresFriendlyTarget and UnitExists("target") and not UnitIsFriend("player", "target") then
+                return false
+            end
+
+            return true
+        elseif actionType == "item" then
+            -- Only check items that have a use effect with range
+            local itemName = C_Item.GetItemInfo(id)
+            if itemName and itemName and C_Spell.SpellHasRange(itemName) then
+                return true
+            end
+        end
+
+        return false
+    end
+
+    for _, baseName in ipairs(buttonsToHook) do
+        for i = 1, 12 do
+            local button = _G[baseName .. i]
+            if button then
+                button.rangeCheckThrottle = 0
+                button:SetScript("OnUpdate", function(self, elapsed)
+                    self.rangeCheckThrottle = self.rangeCheckThrottle + elapsed
+                    if self.rangeCheckThrottle < 0.1 then return end
+                    self.rangeCheckThrottle = 0
+
+                    local icon = self.icon
+                    if not icon then return end
+
+                    if not self:IsVisible() then return end
+                    local action = self.action
+                    if not action then return end
+
+                    -- Check if this action should be range checked
+                    if not RangeColorApplicable(action) then
+                        -- Reset to normal color for non-targeted spells
+                        icon:SetVertexColor(1.0, 1.0, 1.0)
+                        return
+                    end
+
+                    -- Reset to default if no target or targeting self
+                    if not UnitExists("target") or UnitIsUnit("target", "player") then
+                        icon:SetVertexColor(1.0, 1.0, 1.0)
+                        return
+                    end
+
+                    -- Check if action is usable (not on cooldown, have mana, etc.)
+                    local canUse, notEnoughMana = IsUsableAction(action)
+                    local inRange = IsActionInRange(action)
+
+                    if icon then
+                        if not canUse then
+                            -- Grayed out if can't use (no mana, on cooldown, etc.)
+                            icon:SetVertexColor(0.3, 0.3, 0.3)
+                        elseif not inRange then
+                            -- Red tint if out of range but otherwise usable
+                            icon:SetVertexColor(0.8, 0.3, 0.3)
+                        else
+                            -- Normal color if usable and in range
+                            icon:SetVertexColor(1.0, 1.0, 1.0)
+                        end
+                    end
+                end)
+            end
+        end
     end
 end
 
@@ -419,7 +525,7 @@ function ErzbaroneUI.Bars:ArrangeBottomRightBar(barFrame)
     if not barFrame then return end
 
     local canEarnXP = ErzbaroneUI.Bars:CanEarnXP()
-    local buttonSpacing = 6 -- The space between buttons
+    local buttonSpacing = 6                          -- The space between buttons
     local verticalSpacing = canEarnXP and -18 or -12 -- Adjust vertical spacing based on XP bar presence
     for i = 1, 12 do
         local button = _G["MultiBarBottomRightButton" .. i]
