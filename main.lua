@@ -21,7 +21,8 @@ local eventHooks = {
     "UNIT_ENTERED_VEHICLE",
     "DISPLAY_SIZE_CHANGED",
     "MERCHANT_SHOW",
-    "CINEMATIC_STOP"
+    "CINEMATIC_STOP",
+    "UNIT_FACTION"
 }
 
 local frame = CreateFrame("Frame")
@@ -65,6 +66,7 @@ frame:SetScript("OnEvent", function(self, event, name)
                 print("Exiting vehicle, restoring player frame")
                 ErzbaroneUI.UnitFrames:CenterFrames()
                 ErzbaroneUI.UnitFrames:ReplacePlayerFrame()
+                ErzbaroneUI.Bars:ReplaceMicroButtonBar()
             end)
         end
     end
@@ -73,11 +75,12 @@ frame:SetScript("OnEvent", function(self, event, name)
     if event == "UNIT_ENTERED_VEHICLE" then
         if name == "player" then
             ErzbaroneUI.UnitFrames:RestorePlayerFrame()
+            ErzbaroneUI.Bars:ResetMicroButtonBar()
         end
     end
 
-    -- Handle player target changes
-    if event == "PLAYER_TARGET_CHANGED" then
+    -- Handle player target changes or faction changes to update the target frame
+    if event == "PLAYER_TARGET_CHANGED" or event == "UNIT_FACTION" then
         if UnitExists("target") and ErzbaroneUISettings.improvedUnitFrames then
             ErzbaroneUI.UnitFrames:ReplaceTargetFrame()
         end
@@ -108,7 +111,6 @@ frame:SetScript("OnEvent", function(self, event, name)
 
     -- Handle cutscene end
     if event == "CINEMATIC_STOP" then
-        print("Cutscene ended")
-        ErzbaroneUI.Bars:ImproveActionBar()
+        ErzbaroneUI.Bars:ReplaceMicroButtonBar()
     end
 end)

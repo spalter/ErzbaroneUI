@@ -130,7 +130,7 @@ function ErzbaroneUI.Bars:HookActionButtonUpdate()
                     local inRange = IsActionInRange(action)
 
                     if icon then
-                        if not canUse then
+                        if not canUse or notEnoughMana then
                             -- Grayed out if can't use (no mana, on cooldown, etc.)
                             icon:SetVertexColor(0.3, 0.3, 0.3)
                         elseif not inRange then
@@ -297,13 +297,7 @@ function ErzbaroneUI.Bars:ImproveActionBar()
         _G["MainMenuBarRightEndCap"]:Hide()
     end
 
-    if ErzbaroneUI.isClassic then
-        ErzbaroneUI.Bars:RepositionBagButtonsClassic()
-        ErzbaroneUI.Bars:RepositionMicroButtonsClassic()
-    else
-        ErzbaroneUI.Bars:RepositionBagButtonsMop()
-        ErzbaroneUI.Bars:RepositionMicroButtonsMop()
-    end
+    ErzbaroneUI.Bars:ReplaceMicroButtonBar()
 
     C_Timer.After(0.5, function()
         if ErzbaroneUI.Bars.Vars.darkModeDetected then
@@ -314,6 +308,45 @@ function ErzbaroneUI.Bars:ImproveActionBar()
             end
         end
     end)
+end
+
+-- Replaces the Micro Button Bar with a custom layout.
+function ErzbaroneUI.Bars:ReplaceMicroButtonBar()
+    if ErzbaroneUI.isClassic then
+        ErzbaroneUI.Bars:RepositionBagButtonsClassic()
+        ErzbaroneUI.Bars:RepositionMicroButtonsClassic()
+    else
+        ErzbaroneUI.Bars:RepositionBagButtonsMop()
+        ErzbaroneUI.Bars:RepositionMicroButtonsMop()
+    end
+end
+
+function ErzbaroneUI.Bars:ResetMicroButtonBar()
+    local microButtons = {
+        _G["CharacterMicroButton"],
+        _G["SpellbookMicroButton"],
+        _G["TalentMicroButton"],
+        _G["AchievementMicroButton"],
+        _G["QuestLogMicroButton"],
+        _G["GuildMicroButton"],
+        _G["PVPMicroButton"],
+        _G["LFGMicroButton"],
+        _G["CollectionsMicroButton"],
+        _G["StoreMicroButton"],
+        _G["EJMicroButton"],
+        _G["MainMenuMicroButton"],
+    }
+
+    for _, button in ipairs(microButtons) do
+        if button then
+            button:SetParent(UIParent)
+            button:ClearAllPoints()
+            button:SetScale(1.0)
+            button:SetAlpha(1.0)
+            button:SetScript("OnEnter", nil)
+            button:SetScript("OnLeave", nil)
+        end
+    end
 end
 
 -- Repositions the Bag buttons for Mists of Pandaria.
