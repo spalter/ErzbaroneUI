@@ -1,7 +1,7 @@
 ## Interface: 11506, 11507, 50500
 ## Title: ErzbaroneUI
 ## Author: spalt_er
-## Version: 0.9.7
+## Version: 0.9.8
 ## Notes: A World of Warcraft Interface
 ## SavedVariables: ErzbaroneUISettings
 
