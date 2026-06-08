@@ -103,20 +103,24 @@ function ErzbaroneUI.UnitFrames:ReplaceTargetFrame()
         local classification = UnitClassification("target")
         local targetFrameTexture = _G["TargetFrameTextureFrameTexture"]
 
-        if classification == "elite" then
-            targetFrameTexture:SetTexture("Interface\\AddOns\\ErzbaroneUI\\textures\\UI-TargetingFrame-Elite")
-        elseif classification == "rareelite" then
-            targetFrameTexture:SetTexture("Interface\\AddOns\\ErzbaroneUI\\textures\\UI-TargetingFrame-RareElite")
-        elseif classification == "rare" then
-            targetFrameTexture:SetTexture("Interface\\AddOns\\ErzbaroneUI\\textures\\UI-TargetingFrame-Rare")
-        elseif classification == "worldboss" then
-            targetFrameTexture:SetTexture("Interface\\AddOns\\ErzbaroneUI\\textures\\UI-TargetingFrame-Elite")
-        else
-            targetFrameTexture:SetTexture("Interface\\AddOns\\ErzbaroneUI\\textures\\UI-TargetingFrame")
+        if targetFrameTexture then
+            if classification == "elite" then
+                targetFrameTexture:SetTexture("Interface\\AddOns\\ErzbaroneUI\\textures\\UI-TargetingFrame-Elite")
+            elseif classification == "rareelite" then
+                targetFrameTexture:SetTexture("Interface\\AddOns\\ErzbaroneUI\\textures\\UI-TargetingFrame-RareElite")
+            elseif classification == "rare" then
+                targetFrameTexture:SetTexture("Interface\\AddOns\\ErzbaroneUI\\textures\\UI-TargetingFrame-Rare")
+            elseif classification == "worldboss" then
+                targetFrameTexture:SetTexture("Interface\\AddOns\\ErzbaroneUI\\textures\\UI-TargetingFrame-Elite")
+            else
+                targetFrameTexture:SetTexture("Interface\\AddOns\\ErzbaroneUI\\textures\\UI-TargetingFrame")
+            end
         end
 
         local targetFrameNameBackground = _G["TargetFrameNameBackground"]
-        targetFrameNameBackground:SetAlpha(0)
+        if targetFrameNameBackground then
+            targetFrameNameBackground:SetAlpha(0)
+        end
 
         local targetFrameBackground = _G["TargetFrameBackground"]
         if targetFrameBackground then

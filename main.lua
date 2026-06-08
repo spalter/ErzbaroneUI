@@ -1,5 +1,26 @@
 -- Erzbarone main file
 ErzbaroneUI = ErzbaroneUI or {}
+
+-- WoW 1.15.8 / Modern UI Compatibility layer for other addons
+if not _G.PlayerFrameHealthBar and _G.PlayerFrame and _G.PlayerFrame.healthbar then
+    _G.PlayerFrameHealthBar = _G.PlayerFrame.healthbar
+end
+if not _G.TargetFrameHealthBar and _G.TargetFrame and _G.TargetFrame.healthbar then
+    _G.TargetFrameHealthBar = _G.TargetFrame.healthbar
+end
+if not _G.PlayerFrameHealthBarText and _G.PlayerFrame and _G.PlayerFrame.healthbar then
+    _G.PlayerFrameHealthBarText = _G.PlayerFrame.healthbar.LeftText or _G.PlayerFrame.healthbar.TextString or _G.PlayerFrame.healthbar.Text
+end
+if not _G.TargetFrameHealthBarText and _G.TargetFrame and _G.TargetFrame.healthbar then
+    _G.TargetFrameHealthBarText = _G.TargetFrame.healthbar.LeftText or _G.TargetFrame.healthbar.TextString or _G.TargetFrame.healthbar.Text
+end
+if not _G.PlayerFrameTexture and _G.PlayerFrame and _G.PlayerFrame.PlayerFrameContainer then
+    _G.PlayerFrameTexture = _G.PlayerFrame.PlayerFrameContainer.FrameTexture
+end
+if not _G.TargetFrameTextureFrameTexture and _G.TargetFrame and _G.TargetFrame.TargetFrameContainer then
+    _G.TargetFrameTextureFrameTexture = _G.TargetFrame.TargetFrameContainer.FrameTexture
+end
+
 ErzbaroneUI.Static = {
     OpenSoundID = 850,
     CloseSoundID = 851,
@@ -47,8 +68,8 @@ frame:SetScript("OnEvent", function(self, event, name)
 
     -- Handle one time setup for the addon
     if event == "PLAYER_ENTERING_WORLD" then
-        ErzbaroneUI.Castbar:Initialize()
         ErzbaroneUI.Config:Initialize()
+        ErzbaroneUI.Castbar:Initialize()
         ErzbaroneUI.Chat:Initialize()
         ErzbaroneUI.WorldMap:Initialize()
         ErzbaroneUI.Bags:Initialize()
