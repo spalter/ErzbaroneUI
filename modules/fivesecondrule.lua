@@ -9,6 +9,9 @@ ErzbaroneUI.FiveSecondRule = {
 
 local MANA = (Enum and Enum.PowerType and Enum.PowerType.Mana) or 0
 
+-- Vertical offset of the spark relative to the power bar's center
+local SPARK_OFFSET_Y = -2
+
 --- Returns true if the given spell costs mana.
 local function SpellCostsMana(spellID)
     local costs = spellID and C_Spell.GetSpellPowerCost(spellID)
@@ -24,45 +27,57 @@ local function SpellCostsMana(spellID)
     return false
 end
 
---- Creates the spark which travels over the player's mana bar.
---- The spark is anchored to the fill edge of an invisible status bar on top of the mana bar, so its position never
---- needs the mana bar's size, which becomes a secret value in combat.
-function ErzbaroneUI.FiveSecondRule:CreateSpark()
-    local manaBar = PlayerFrame_GetManaBar()
-    if not manaBar then
+--- Creates a spark which travels once from left to right over the player's power bar within a given duration.
+--- The spark is anchored to the fill edge of an invisible status bar on top of the power bar, so its position never
+--- needs the power bar's size, which becomes a secret value in combat.
+--- Returns a frame with Start(duration) and Stop() methods, or nil when there is no power bar.
+function ErzbaroneUI.CreatePowerBarSpark(name)
+    local powerBar = PlayerFrame_GetManaBar()
+    if not powerBar then
         return nil
     end
 
-    local track = CreateFrame("StatusBar", "ErzbaroneUIFiveSecondRuleTrack", manaBar)
-    track:SetAllPoints(manaBar)
-    track:SetFrameLevel(manaBar:GetFrameLevel() + 5)
+    local track = CreateFrame("StatusBar", name, powerBar)
+    track:SetAllPoints(powerBar)
+    track:SetFrameLevel(powerBar:GetFrameLevel() + 5)
     track:SetStatusBarTexture("Interface\\Buttons\\WHITE8X8")
     track:GetStatusBarTexture():SetAlpha(0)
-    track:SetMinMaxValues(0, self.Duration)
     track:EnableMouse(false)
     track:Hide()
 
     local sparkHeight = 24
-    local manaBarHeight = manaBar:GetHeight()
-    if not canaccessvalue or canaccessvalue(manaBarHeight) then
-        sparkHeight = math.max(manaBarHeight * 2.5, sparkHeight)
+    local powerBarHeight = powerBar:GetHeight()
+    if not canaccessvalue or canaccessvalue(powerBarHeight) then
+        sparkHeight = math.max(powerBarHeight * 2.5, sparkHeight)
     end
 
     track.spark = track:CreateTexture(nil, "OVERLAY")
     track.spark:SetSize(32, sparkHeight)
-    track.spark:SetPoint("CENTER", track:GetStatusBarTexture(), "RIGHT", 0, 0)
-    track.spark:SetTexture(self.SparkTexture)
+    track.spark:SetPoint("CENTER", track:GetStatusBarTexture(), "RIGHT", 0, SPARK_OFFSET_Y)
+    track.spark:SetTexture(ErzbaroneUI.FiveSecondRule.SparkTexture)
     track.spark:SetBlendMode("ADD")
 
     track:SetScript("OnUpdate", function(frame)
         local elapsed = GetTime() - frame.startTime
-        if elapsed >= ErzbaroneUI.FiveSecondRule.Duration then
+        if elapsed >= frame.duration then
             frame:Hide()
             return
         end
 
         frame:SetValue(elapsed)
     end)
+
+    function track:Start(duration)
+        self.startTime = GetTime()
+        self.duration = duration
+        self:SetMinMaxValues(0, duration)
+        self:SetValue(0)
+        self:Show()
+    end
+
+    function track:Stop()
+        self:Hide()
+    end
 
     return track
 end
@@ -74,20 +89,18 @@ function ErzbaroneUI.FiveSecondRule:Start()
         return
     end
 
-    self.Spark = self.Spark or self:CreateSpark()
+    self.Spark = self.Spark or ErzbaroneUI.CreatePowerBarSpark("ErzbaroneUIFiveSecondRuleTrack")
     if not self.Spark then
         return
     end
 
-    self.Spark.startTime = GetTime()
-    self.Spark:SetValue(0)
-    self.Spark:Show()
+    self.Spark:Start(self.Duration)
 end
 
 --- Stops the timer and hides the spark.
 function ErzbaroneUI.FiveSecondRule:Stop()
     if self.Spark then
-        self.Spark:Hide()
+        self.Spark:Stop()
     end
 end
 

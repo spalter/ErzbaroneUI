@@ -18,6 +18,10 @@ local defaults = {
     fadeMinimapButtons = true,
     unitFrameTexture = "classic",
     castBarTexture = "classic",
+    swingTimer = false,
+    hideThreatGlow = false,
+    damageFont = "blizzard",
+    damageTextScale = "blizzard",
 }
 
 --- Saved settings of removed features
@@ -26,12 +30,19 @@ local OBSOLETE_SETTINGS = {
     "raidStylePartyFrames",
     "editModeLayout",
     "layoutVersions",
+    "classicDamageFont",
 }
 
 --- Initializes the configuration settings for ErzbaroneUI.
 function ErzbaroneUI.Config:Initialize()
     -- Ensure ErzbaroneUISettings is initialized
     ErzbaroneUISettings = ErzbaroneUISettings or {}
+
+    -- The classic damage font checkbox became a font dropdown
+    if ErzbaroneUISettings.classicDamageFont == false and ErzbaroneUISettings.damageFont == nil then
+        ErzbaroneUISettings.damageFont = "blizzard"
+    end
+
     for key, value in pairs(defaults) do
         if ErzbaroneUISettings[key] == nil then
             ErzbaroneUISettings[key] = value
@@ -55,13 +66,62 @@ end
 function ErzbaroneUI.Config:Setup()
     TARGET_FRAME_BUFFS_ON_TOP = true
     SetCVar("cameraDistanceMaxZoomFactor", "4.0")
+    ErzbaroneUI.Config:SetDamageFont()
+    if ErzbaroneUISettings.damageTextScale ~= "blizzard" then
+        ErzbaroneUI.Config:UpdateDamageTextScale()
+    end
 end
 
---- Sets the font for damage text in the game.
+local DAMAGE_FONTS = {
+    { "blizzard", "Blizzard" },
+    { "classic", "Classic (Skurri)", "Fonts\\skurri.ttf" },
+    { "morpheus", "Morpheus", "Fonts\\MORPHEUS.ttf" },
+    { "friz", "Friz Quadrata", "Fonts\\FRIZQT__.TTF" },
+    { "arial", "Arial Narrow", "Fonts\\ARIALN.TTF" },
+    { "custom", "Custom (fonts\\damage.ttf)", "Interface\\AddOns\\ErzbaroneUI\\fonts\\damage.ttf" },
+}
+
+local DAMAGE_TEXT_SCALES = {
+    { "blizzard", "Blizzard" },
+    { "0.65", "65%" },
+    { "0.75", "75%" },
+    { "0.85", "85%" },
+    { "1", "100%" },
+}
+
+local WORLD_TEXT_SCALE_CVAR = "WorldTextScale"
+
+function ErzbaroneUI.Config:GetDamageFontOptions()
+    return DAMAGE_FONTS
+end
+
+function ErzbaroneUI.Config:GetDamageTextScaleOptions()
+    return DAMAGE_TEXT_SCALES
+end
+
+--- Uses the selected font for the damage numbers above units.
+--- The game only reads the font while logging in, so it has to be set while the addon loads.
 function ErzbaroneUI.Config:SetDamageFont()
-    DAMAGE_TEXT_FONT = "Fonts\\skurri.TTF"
-    COMBAT_TEXT_FONT = "Fonts\\skurri.TTF"
-    SetCVar("WorldTextScale", tostring(0.75))
+    for _, option in ipairs(DAMAGE_FONTS) do
+        if option[1] == ErzbaroneUISettings.damageFont and option[3] then
+            DAMAGE_TEXT_FONT = option[3]
+        end
+    end
+end
+
+--- Applies the damage number scale. Blizzard restores the game's default scale.
+function ErzbaroneUI.Config:UpdateDamageTextScale()
+    if not C_CVar or C_CVar.GetCVar(WORLD_TEXT_SCALE_CVAR) == nil then
+        return
+    end
+
+    local scale = ErzbaroneUISettings.damageTextScale
+    if scale == "blizzard" then
+        scale = C_CVar.GetCVarDefault(WORLD_TEXT_SCALE_CVAR)
+    end
+    if scale and C_CVar.GetCVar(WORLD_TEXT_SCALE_CVAR) ~= scale then
+        C_CVar.SetCVar(WORLD_TEXT_SCALE_CVAR, scale)
+    end
 end
 
 local COLUMN_WIDTH = 300
@@ -88,6 +148,16 @@ local SECTIONS = {
             { "vignette", "Show Vignette Effect",
                 "Darkens the edges of the screen with a vignette overlay.",
                 function() ErzbaroneUI.Effects:UpdateVignette() end },
+            { "damageFont", "Damage Font",
+                "Font of the damage numbers above your target. Takes effect after logging out to the character selection and back in. Custom uses fonts\\damage.ttf inside the addon folder.",
+                function()
+                    print("|cffffd100ErzbaroneUI:|r The damage font changes after logging out to the character selection and back in.")
+                end,
+                function() return ErzbaroneUI.Config:GetDamageFontOptions() end },
+            { "damageTextScale", "Damage Text Scale",
+                "Size of the damage numbers above your target. Smaller sizes keep fonts like Skurri sharper. Blizzard restores the game's default size.",
+                function() ErzbaroneUI.Config:UpdateDamageTextScale() end,
+                function() return ErzbaroneUI.Config:GetDamageTextScaleOptions() end },
         },
     },
     {
@@ -97,6 +167,12 @@ local SECTIONS = {
             { "fiveSecondRuleTimer", "Five Second Rule Timer",
                 "Shows a spark moving across your mana bar for 5 seconds after casting a spell that costs mana. Mana regeneration from Spirit resumes once it has passed.",
                 function() ErzbaroneUI.FiveSecondRule:Update() end },
+            { "swingTimer", "Swing Timer",
+                "Shows a spark moving across your power bar for the duration of each main hand swing, like the five second rule timer. Meant for melee fighters.",
+                function() ErzbaroneUI.SwingTimer:Update() end },
+            { "hideThreatGlow", "Hide Threat Glow",
+                "Hides the large red glow around the player, target and focus frames that shows while a creature is attacking you. The combat pulse on the player portrait and the attack icon stay visible.",
+                function() ErzbaroneUI.ThreatGlow:Update() end },
             { "unitFrameTexture", "Bar Texture",
                 "Replaces the flat health and power bar textures of the player, target, focus, pet and party frames. Custom uses textures\\statusbar.tga or .blp inside the addon folder.",
                 function() ErzbaroneUI.StatusBars:Update() end,
