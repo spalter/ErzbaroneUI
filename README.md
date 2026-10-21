@@ -17,7 +17,7 @@ To open the configuration, go to Game Menu → Options → AddOns → ErzbaroneU
 - Red tint on action buttons while the target is out of range
 - Hides the button column left of the chat window
 - Hides the vertical action bars on the right until hovered
-- Compact minimap: removes the header, places tracking, calendar, mail and addon buttons on the minimap border and shows the server time inside the minimap
+- Compact minimap: removes the header, places tracking, calendar, mail and addon buttons on the minimap border and shows the server time inside the minimap; the buttons can be hidden until the minimap is hovered
 
 ## Screenshots
 

@@ -14,6 +14,7 @@ local defaults = {
     fadeRightBars = true,
     hideChatButtons = true,
     compactMinimap = true,
+    fadeMinimapButtons = true,
 }
 
 --- Initializes the configuration settings for ErzbaroneUI.
@@ -116,6 +117,9 @@ local SECTIONS = {
         settings = {
             { "compactMinimap", "Compact Minimap",
                 "Removes the header above the minimap, moves the minimap up and places tracking, calendar, mail and addon buttons on its border. The server time is shown inside the minimap and the zone name appears while hovering it.",
+                function() ErzbaroneUI.Minimap:Update() end },
+            { "fadeMinimapButtons", "Show Buttons on Mouseover",
+                "Hides the tracking, calendar and addon buttons until you move your mouse over the minimap. The calendar stays visible while you have pending invites.",
                 function() ErzbaroneUI.Minimap:Update() end },
         },
     },

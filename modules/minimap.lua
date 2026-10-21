@@ -167,12 +167,81 @@ local function Restore()
 end
 
 --- Applies or restores the compact minimap based on the current setting.
+local FADE_SPEED = 6 -- alpha per second
+local fader = CreateFrame("Frame")
+local fadeAlpha = 1
+
+local function GetFadeButtons()
+    return { MinimapCluster.Tracking, GameTimeFrame, AddonCompartmentFrame }
+end
+
+local function SetButtonsAlpha(alpha)
+    for _, button in pairs(GetFadeButtons()) do
+        button:SetAlpha(alpha)
+    end
+end
+
+local function IsMenuOpen(button)
+    return button and button.IsMenuOpen and button:IsMenuOpen()
+end
+
+--- Buttons stay visible while the minimap or a button is hovered, a dropdown is open or Edit Mode is active.
+local function ShouldShowButtons()
+    if MinimapCluster.MinimapContainer:IsMouseOver() then
+        return true
+    end
+    if EditModeManagerFrame and EditModeManagerFrame:IsEditModeActive() then
+        return true
+    end
+    if IsMenuOpen(MinimapCluster.Tracking.Button) or IsMenuOpen(AddonCompartmentFrame) then
+        return true
+    end
+    for _, button in pairs(GetFadeButtons()) do
+        if button:IsMouseOver() then
+            return true
+        end
+    end
+    return false
+end
+
+local function OnFadeUpdate(_, elapsed)
+    -- Pending calendar invites should never be hidden
+    local hasInvites = GameTimeCalendarInvitesTexture and GameTimeCalendarInvitesTexture:IsShown()
+    GameTimeFrame:SetAlpha(hasInvites and 1 or fadeAlpha)
+
+    local target = ShouldShowButtons() and 1 or 0
+    if fadeAlpha == target then
+        return
+    end
+
+    if fadeAlpha < target then
+        fadeAlpha = math.min(target, fadeAlpha + FADE_SPEED * elapsed)
+    else
+        fadeAlpha = math.max(target, fadeAlpha - FADE_SPEED * elapsed)
+    end
+    SetButtonsAlpha(fadeAlpha)
+    if hasInvites then
+        GameTimeFrame:SetAlpha(1)
+    end
+end
+
+local function UpdateButtonFade()
+    fadeAlpha = 1
+    SetButtonsAlpha(1)
+    if ErzbaroneUISettings.fadeMinimapButtons then
+        fader:SetScript("OnUpdate", OnFadeUpdate)
+    else
+        fader:SetScript("OnUpdate", nil)
+    end
+end
+
 function ErzbaroneUI.Minimap:Update()
     if IsEnabled() then
         Apply()
     elseif applied then
         Restore()
     end
+    UpdateButtonFade()
 end
 
 --- Re-applies the layout after Blizzard re-anchored parts of the minimap.
