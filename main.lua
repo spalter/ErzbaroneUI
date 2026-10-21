@@ -27,6 +27,7 @@ frame:SetScript("OnEvent", function(_, event, name)
     if event == "PLAYER_ENTERING_WORLD" then
         ErzbaroneUI.FiveSecondRule:Initialize()
         ErzbaroneUI.StatusBars:Initialize()
+        ErzbaroneUI.CastBars:Initialize()
         ErzbaroneUI.CastCount:Initialize()
         ErzbaroneUI.RangeTint:Initialize()
         ErzbaroneUI.BarFade:Initialize()

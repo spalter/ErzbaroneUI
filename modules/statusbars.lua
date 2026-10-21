@@ -21,7 +21,11 @@ local DEFAULT_POWER_COLOR = { 0, 0, 1 }
 local originals = {}
 
 local function GetTexturePath()
-    local selected = ErzbaroneUISettings and ErzbaroneUISettings.unitFrameTexture
+    return ErzbaroneUI.StatusBars:GetTexturePath(ErzbaroneUISettings and ErzbaroneUISettings.unitFrameTexture)
+end
+
+--- Returns the file path of a texture option, or nil for Blizzard's default textures.
+function ErzbaroneUI.StatusBars:GetTexturePath(selected)
     for _, texture in ipairs(TEXTURES) do
         if texture[1] == selected then
             return texture[3]

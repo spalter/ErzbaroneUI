@@ -16,6 +16,7 @@ local defaults = {
     compactMinimap = true,
     fadeMinimapButtons = true,
     unitFrameTexture = "classic",
+    castBarTexture = "classic",
 }
 
 --- Initializes the configuration settings for ErzbaroneUI.
@@ -89,6 +90,10 @@ local SECTIONS = {
             { "unitFrameTexture", "Bar Texture",
                 "Replaces the flat health and power bar textures of the player, target, focus, pet and party frames. Custom uses textures\\statusbar.tga or .blp inside the addon folder.",
                 function() ErzbaroneUI.StatusBars:Update() end,
+                function() return ErzbaroneUI.StatusBars:GetTextureOptions() end },
+            { "castBarTexture", "Cast Bar Texture",
+                "Replaces the texture of the player, pet, target and focus cast bars and colors them like the classic cast bars. Applies from the next cast on. Casts of other units that the game keeps hidden from addons keep Blizzard's look.",
+                function() ErzbaroneUI.CastBars:Update() end,
                 function() return ErzbaroneUI.StatusBars:GetTextureOptions() end },
         },
     },

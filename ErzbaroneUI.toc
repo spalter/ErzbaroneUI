@@ -10,6 +10,7 @@ modules\config.lua
 modules\effects.lua
 modules\fivesecondrule.lua
 modules\statusbars.lua
+modules\castbars.lua
 modules\castcount.lua
 modules\rangetint.lua
 modules\barfade.lua
