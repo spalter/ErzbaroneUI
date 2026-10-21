@@ -14,6 +14,7 @@ local defaults = {
     fadeRightBars = true,
     hideChatButtons = true,
     chatToCorner = true,
+    fadeChatTabs = true,
     compactMinimap = true,
     fadeMinimapButtons = true,
     unitFrameTexture = "classic",
@@ -193,6 +194,9 @@ local SECTIONS = {
             { "chatToCorner", "Move Chat to Corner",
                 "Moves the chat window into the lower left corner of the screen. Only applies while the chat is in its default Edit Mode position, so a position you set in Edit Mode is kept.",
                 function() ErzbaroneUI.Chat:UpdatePosition() end },
+            { "fadeChatTabs", "Fade Chat Tabs",
+                "Hides the chat tabs until the mouse is over the chat window. Tabs with new messages stay visible. To show the input box only while typing, set Options > Social > Chat Style to Classic.",
+                function() ErzbaroneUI.Chat:UpdateTabs() end },
         },
     },
     {

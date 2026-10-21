@@ -100,10 +100,45 @@ function ErzbaroneUI.Chat:UpdatePosition()
     end
 end
 
+--- Lowers the resting alpha of a chat tab to zero, so it only shows while the mouse is over the chat.
+--- Tabs with unread whispers keep Blizzard's alerting alpha.
+local function FadeChatTab(chatFrame)
+    if not ErzbaroneUISettings.fadeChatTabs or not ChatFrameUtil or not ChatFrameUtil.SetTabAlphas then
+        return
+    end
+    local chatTab = _G[chatFrame:GetName() .. "Tab"]
+    if not chatTab or (ChatFrameUtil.IsTabAlerting and ChatFrameUtil.IsTabAlerting(chatTab)) then
+        return
+    end
+    local mouseOverAlpha = ChatFrameUtil.GetTabAlphas(chatTab)
+    ChatFrameUtil.SetTabAlphas(chatTab, mouseOverAlpha, 0)
+    if not chatFrame.hasBeenFaded then
+        chatTab:SetAlpha(0)
+    end
+end
+
+--- Applies or restores the tab alphas of all chat windows.
+function ErzbaroneUI.Chat:UpdateTabs()
+    if not FCFTab_UpdateAlpha then
+        return
+    end
+    for _, name in ipairs(CHAT_FRAMES or {}) do
+        local chatFrame = _G[name]
+        if chatFrame then
+            -- Blizzard recalculates its own alphas, the hook then applies ours if enabled
+            FCFTab_UpdateAlpha(chatFrame)
+        end
+    end
+end
+
 --- Applies the setting and catches chat windows and buttons created later on.
 function ErzbaroneUI.Chat:Initialize()
     if not self.Initialized then
         self.Initialized = true
+
+        if FCFTab_UpdateAlpha then
+            hooksecurefunc("FCFTab_UpdateAlpha", FadeChatTab)
+        end
 
         if FCF_OpenTemporaryWindow then
             hooksecurefunc("FCF_OpenTemporaryWindow", function()
@@ -127,4 +162,5 @@ function ErzbaroneUI.Chat:Initialize()
     end
 
     self:Update()
+    self:UpdateTabs()
 end
