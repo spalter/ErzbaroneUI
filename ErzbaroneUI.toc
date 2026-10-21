@@ -18,6 +18,7 @@ modules\rangetint.lua
 modules\barfade.lua
 modules\chat.lua
 modules\minimap.lua
+modules\bags.lua
 modules\utils.lua
 
 # Core

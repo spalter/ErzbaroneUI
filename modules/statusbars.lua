@@ -15,10 +15,14 @@ local TEXTURES = {
 
 local HEALTH_COLOR = { 0, 1, 0 }
 local DISCONNECTED_COLOR = { 0.5, 0.5, 0.5 }
+local TAPPED_COLOR = { 0.5, 0.5, 0.5 }
 local DEFAULT_POWER_COLOR = { 0, 0, 1 }
 
 -- Blizzard atlas and color of each bar before it was replaced, used to restore the default look.
 local originals = {}
+
+-- Health bars whose Blizzard atlas was desaturated to show a class color.
+local tinted = {}
 
 local function GetTexturePath()
     return ErzbaroneUI.StatusBars:GetTexturePath(ErzbaroneUISettings and ErzbaroneUISettings.unitFrameTexture)
@@ -63,15 +67,68 @@ local function SaveOriginal(bar)
     end
 end
 
+--- Accepts both { r, g, b } arrays and class color objects with r/g/b fields.
+local function SetBarColor(bar, color)
+    bar:SetStatusBarColor(color.r or color[1], color.g or color[2], color.b or color[3])
+end
+
+--- Returns the value only if it is not a secret value hidden from addons.
+local function Readable(value)
+    if canaccessvalue and not canaccessvalue(value) then
+        return nil
+    end
+    return value
+end
+
+--- Returns the class color for players, grey for creatures tapped by someone else, or nil for the default color.
+local function GetUnitHealthColor(bar)
+    if not ErzbaroneUISettings.unitClassColors or bar.disconnected then
+        return nil
+    end
+    local unit = bar.unit or (bar.unitFrame and bar.unitFrame.unit)
+    if not unit or not UnitExists(unit) then
+        return nil
+    end
+
+    if Readable(UnitIsPlayer(unit)) then
+        local _, class = UnitClass(unit)
+        class = Readable(class)
+        return class and RAID_CLASS_COLORS[class] or nil
+    end
+    if not Readable(UnitPlayerControlled(unit)) and Readable(UnitIsTapDenied(unit)) then
+        return TAPPED_COLOR
+    end
+    return nil
+end
+
 local function ApplyHealth(bar)
-    local path = GetTexturePath()
-    if not bar or not path then
+    if not bar then
         return
     end
-    SaveOriginal(bar)
-    bar:SetStatusBarTexture(path)
-    local color = bar.disconnected and DISCONNECTED_COLOR or HEALTH_COLOR
-    bar:SetStatusBarColor(color[1], color[2], color[3])
+    local path = GetTexturePath()
+    local classColor = GetUnitHealthColor(bar)
+    local texture = bar:GetStatusBarTexture()
+
+    if path then
+        SaveOriginal(bar)
+        bar:SetStatusBarTexture(path)
+        if tinted[bar] and texture then
+            texture:SetDesaturated(false)
+            tinted[bar] = nil
+        end
+        SetBarColor(bar, classColor or (bar.disconnected and DISCONNECTED_COLOR) or HEALTH_COLOR)
+    elseif classColor and texture then
+        -- Blizzard's health atlas is green itself, so it has to lose its color before it can be tinted
+        texture:SetDesaturated(true)
+        tinted[bar] = true
+        SetBarColor(bar, classColor)
+    elseif tinted[bar] then
+        if texture then
+            texture:SetDesaturated(false)
+        end
+        tinted[bar] = nil
+        SetBarColor(bar, bar.disconnected and DISCONNECTED_COLOR or HEALTH_COLOR)
+    end
 end
 
 local function ApplyPower(bar)
@@ -130,14 +187,13 @@ local function RestoreAll()
     originals = {}
 end
 
---- Applies the selected texture to all unit frame bars, or restores Blizzard's textures.
+--- Applies the selected texture and health colors to all unit frame bars, or restores Blizzard's textures.
 function ErzbaroneUI.StatusBars:Update()
-    if GetTexturePath() then
-        for _, frame in ipairs(GetManagedFrames()) do
-            ApplyFrame(frame)
-        end
-    else
+    if not GetTexturePath() then
         RestoreAll()
+    end
+    for _, frame in ipairs(GetManagedFrames()) do
+        ApplyFrame(frame)
     end
 end
 
@@ -160,6 +216,12 @@ function ErzbaroneUI.StatusBars:Initialize()
         for _, frame in ipairs({ TargetFrame, FocusFrame }) do
             if frame and frame.UpdateHealthBarVisuals then
                 hooksecurefunc(frame, "UpdateHealthBarVisuals", function(unitFrame)
+                    ApplyHealth(unitFrame.healthbar)
+                end)
+            end
+            -- Fires when the target gets tapped by someone else
+            if frame and frame.CheckFaction then
+                hooksecurefunc(frame, "CheckFaction", function(unitFrame)
                     ApplyHealth(unitFrame.healthbar)
                 end)
             end

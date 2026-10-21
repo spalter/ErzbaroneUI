@@ -35,6 +35,7 @@ frame:SetScript("OnEvent", function(_, event, name)
         ErzbaroneUI.BarFade:Initialize()
         ErzbaroneUI.Chat:Initialize()
         ErzbaroneUI.Minimap:Initialize()
+        ErzbaroneUI.Bags:Initialize()
     end
 
     -- Handle merchant show event to auto-sell grey items

@@ -4,11 +4,13 @@ end
 
 ErzbaroneUI.SwingTimer = {}
 
-local function IsMainHandSwing(swingType)
-    return swingType == ((Enum.PlayerSwingType and Enum.PlayerSwingType.MainHand) or 0)
+-- Off hand swings are skipped, so dual wielding shows the main hand rhythm only.
+local function IsTrackedSwing(swingType)
+    local types = Enum.PlayerSwingType
+    return swingType == ((types and types.MainHand) or 0) or swingType == ((types and types.Ranged) or 2)
 end
 
---- Starts the spark for a main hand swing of the given duration.
+--- Starts the spark for a main hand or ranged swing of the given duration.
 function ErzbaroneUI.SwingTimer:Start(duration)
     if not duration or (canaccessvalue and not canaccessvalue(duration)) or duration <= 0 then
         return
@@ -32,7 +34,7 @@ function ErzbaroneUI.SwingTimer:Update()
         self.EventFrame = CreateFrame("Frame")
         self.EventFrame:SetScript("OnEvent", function(_, event, swingDuration, swingType)
             if event == "PLAYER_SWING" then
-                if IsMainHandSwing(swingType) then
+                if IsTrackedSwing(swingType) then
                     ErzbaroneUI.SwingTimer:Start(swingDuration)
                 end
             else
