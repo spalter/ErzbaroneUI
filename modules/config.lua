@@ -13,10 +13,19 @@ local defaults = {
     rangeTint = true,
     fadeRightBars = true,
     hideChatButtons = true,
+    chatToCorner = true,
     compactMinimap = true,
     fadeMinimapButtons = true,
     unitFrameTexture = "classic",
     castBarTexture = "classic",
+}
+
+--- Saved settings of removed features
+local OBSOLETE_SETTINGS = {
+    "showErzbaroneUIFlag",
+    "raidStylePartyFrames",
+    "editModeLayout",
+    "layoutVersions",
 }
 
 --- Initializes the configuration settings for ErzbaroneUI.
@@ -29,8 +38,9 @@ function ErzbaroneUI.Config:Initialize()
         end
     end
 
-    -- Flag module was removed; drop its stale saved setting
-    ErzbaroneUISettings.showErzbaroneUIFlag = nil
+    for _, key in ipairs(OBSOLETE_SETTINGS) do
+        ErzbaroneUISettings[key] = nil
+    end
 
     ErzbaroneUI.Config:Setup()
     ErzbaroneUI.Config:RegisterSettingsPanel()
@@ -104,6 +114,9 @@ local SECTIONS = {
             { "hideChatButtons", "Hide Chat Buttons",
                 "Hides the button column left of the chat window (chat menu, channels, voice, quick join and text to speech).",
                 function() ErzbaroneUI.Chat:Update() end },
+            { "chatToCorner", "Move Chat to Corner",
+                "Moves the chat window into the lower left corner of the screen. Only applies while the chat is in its default Edit Mode position, so a position you set in Edit Mode is kept.",
+                function() ErzbaroneUI.Chat:UpdatePosition() end },
         },
     },
     {

@@ -57,6 +57,47 @@ function ErzbaroneUI.Chat:Update()
         end
         originalParents = {}
     end
+
+    ErzbaroneUI.Chat:UpdatePosition()
+end
+
+-- Distance of the chat window to the screen corner. The bottom gap leaves room for the input box below the chat.
+local CORNER_OFFSET_X = 8
+local CORNER_OFFSET_X_WITH_BUTTONS = 35
+local CORNER_OFFSET_Y = 34
+
+local movedToCorner = false
+
+-- Edit Mode replaces SetPoint/ClearAllPoints with versions that notify Edit Mode; the base versions only move the frame.
+local function SetChatPoint(chatFrame, point, relativeTo, relativePoint, x, y)
+    local clear = chatFrame.ClearAllPointsBase or chatFrame.ClearAllPoints
+    local setPoint = chatFrame.SetPointBase or chatFrame.SetPoint
+    clear(chatFrame)
+    setPoint(chatFrame, point, relativeTo, relativePoint, x, y)
+end
+
+--- Moves the main chat window into the lower left corner while it is in its default Edit Mode position.
+function ErzbaroneUI.Chat:UpdatePosition()
+    local chatFrame = ChatFrame1
+    if not chatFrame or not chatFrame.IsInDefaultPosition then
+        return
+    end
+
+    local isDefault = chatFrame:IsInDefaultPosition()
+    if ErzbaroneUISettings.chatToCorner and isDefault then
+        local scale = chatFrame:GetScale()
+        local x = ErzbaroneUISettings.hideChatButtons and CORNER_OFFSET_X or CORNER_OFFSET_X_WITH_BUTTONS
+        SetChatPoint(chatFrame, "BOTTOMLEFT", UIParent, "BOTTOMLEFT", x / scale, CORNER_OFFSET_Y / scale)
+        movedToCorner = true
+    elseif movedToCorner then
+        movedToCorner = false
+        local anchor = isDefault and chatFrame.systemInfo and chatFrame.systemInfo.anchorInfo
+        if anchor then
+            local scale = chatFrame:GetScale()
+            SetChatPoint(chatFrame, anchor.point, anchor.relativeTo, anchor.relativePoint,
+                anchor.offsetX / scale, anchor.offsetY / scale)
+        end
+    end
 end
 
 --- Applies the setting and catches chat windows and buttons created later on.
@@ -67,6 +108,13 @@ function ErzbaroneUI.Chat:Initialize()
         if FCF_OpenTemporaryWindow then
             hooksecurefunc("FCF_OpenTemporaryWindow", function()
                 ErzbaroneUI.Chat:Update()
+            end)
+        end
+
+        -- Edit Mode re-anchors the chat window whenever a layout is applied or the chat is resized
+        if ChatFrame1 and ChatFrame1.ApplySystemAnchor then
+            hooksecurefunc(ChatFrame1, "ApplySystemAnchor", function()
+                ErzbaroneUI.Chat:UpdatePosition()
             end)
         end
 
