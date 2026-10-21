@@ -28,6 +28,7 @@ frame:SetScript("OnEvent", function(_, event, name)
         ErzbaroneUI.FiveSecondRule:Initialize()
         ErzbaroneUI.CastCount:Initialize()
         ErzbaroneUI.RangeTint:Initialize()
+        ErzbaroneUI.BarFade:Initialize()
         ErzbaroneUI.Chat:Initialize()
         ErzbaroneUI.Minimap:Initialize()
     end

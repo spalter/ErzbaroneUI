@@ -11,6 +11,7 @@ modules\effects.lua
 modules\fivesecondrule.lua
 modules\castcount.lua
 modules\rangetint.lua
+modules\barfade.lua
 modules\chat.lua
 modules\minimap.lua
 modules\utils.lua

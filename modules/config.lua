@@ -11,6 +11,7 @@ local defaults = {
     fiveSecondRuleTimer = true,
     castCount = true,
     rangeTint = true,
+    fadeRightBars = true,
     hideChatButtons = true,
     compactMinimap = true,
 }
@@ -136,9 +137,12 @@ function ErzbaroneUI.Config:RegisterSettingsPanel()
     local rangeTint = CreateSettingCheckbox(panel, castCount, "rangeTint", "Tint Buttons Out of Range",
         "Tints the whole action button red while your target is out of range of that action.",
         function() ErzbaroneUI.RangeTint:Update() end)
+    local fadeRightBars = CreateSettingCheckbox(panel, rangeTint, "fadeRightBars", "Show Right Bars on Mouseover",
+        "Hides the vertical action bars on the right side of the screen until you move your mouse over them.",
+        function() ErzbaroneUI.BarFade:Update() end)
 
     local chatHeader = panel:CreateFontString(nil, "ARTWORK", "GameFontNormal")
-    chatHeader:SetPoint("TOPLEFT", rangeTint, "BOTTOMLEFT", 0, -16)
+    chatHeader:SetPoint("TOPLEFT", fadeRightBars, "BOTTOMLEFT", 0, -16)
     chatHeader:SetText("Chat")
 
     local hideChat = CreateSettingCheckbox(panel, chatHeader, "hideChatButtons", "Hide Chat Buttons",
