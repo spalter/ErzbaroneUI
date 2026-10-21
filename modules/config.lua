@@ -51,15 +51,91 @@ function ErzbaroneUI.Config:SetDamageFont()
     SetCVar("WorldTextScale", tostring(0.75))
 end
 
---- Creates a checkbox bound to a boolean entry in ErzbaroneUISettings.
+local COLUMN_WIDTH = 300
+local COLUMN_GAP = 20
+local ROW_HEIGHT = 26
+local SECTION_GAP = 14
+
+--- Settings grouped into sections, each placed in one of two columns.
+local SECTIONS = {
+    {
+        column = 1,
+        title = "General",
+        settings = {
+            { "autoSellGreyItems", "Auto Sell Grey Items",
+                "Automatically sells all grey (poor quality) items when visiting a merchant." },
+            { "autoRepair", "Auto Repair Items",
+                "Automatically repairs all items when visiting a merchant that can repair." },
+        },
+    },
+    {
+        column = 1,
+        title = "Visuals",
+        settings = {
+            { "vignette", "Show Vignette Effect",
+                "Darkens the edges of the screen with a vignette overlay.",
+                function() ErzbaroneUI.Effects:UpdateVignette() end },
+        },
+    },
+    {
+        column = 1,
+        title = "Unit Frames",
+        settings = {
+            { "fiveSecondRuleTimer", "Five Second Rule Timer",
+                "Shows a spark moving across your mana bar for 5 seconds after casting a spell that costs mana. Mana regeneration from Spirit resumes once it has passed.",
+                function() ErzbaroneUI.FiveSecondRule:Update() end },
+        },
+    },
+    {
+        column = 1,
+        title = "Chat",
+        settings = {
+            { "hideChatButtons", "Hide Chat Buttons",
+                "Hides the button column left of the chat window (chat menu, channels, voice, quick join and text to speech).",
+                function() ErzbaroneUI.Chat:Update() end },
+        },
+    },
+    {
+        column = 2,
+        title = "Action Bars",
+        settings = {
+            { "castCount", "Show Cast Count",
+                "Shows how often each mana spell can be cast with your current mana in the bottom left corner of its action button.",
+                function() ErzbaroneUI.CastCount:Update() end },
+            { "rangeTint", "Tint Buttons Out of Range",
+                "Tints the whole action button red while your target is out of range of that action.",
+                function() ErzbaroneUI.RangeTint:Update() end },
+            { "fadeRightBars", "Show Right Bars on Mouseover",
+                "Hides the vertical action bars on the right side of the screen until you move your mouse over them.",
+                function() ErzbaroneUI.BarFade:Update() end },
+        },
+    },
+    {
+        column = 2,
+        title = "Minimap",
+        settings = {
+            { "compactMinimap", "Compact Minimap",
+                "Removes the header above the minimap, moves the minimap up and places tracking, calendar, mail and addon buttons on its border. The server time is shown inside the minimap and the zone name appears while hovering it.",
+                function() ErzbaroneUI.Minimap:Update() end },
+        },
+    },
+}
+
+--- Creates a compact checkbox bound to a boolean entry in ErzbaroneUISettings.
 --- The optional onChange callback is invoked with the new value after the setting was updated.
-local function CreateSettingCheckbox(parent, anchor, key, label, tooltip, onChange)
+local function CreateSettingCheckbox(parent, key, label, tooltip, onChange)
     local checkbox = CreateFrame("CheckButton", "ErzbaroneUISetting_" .. key, parent, "UICheckButtonTemplate")
-    checkbox:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 0, -8)
+    checkbox:SetSize(ROW_HEIGHT, ROW_HEIGHT)
+    checkbox:SetHitRectInsets(0, -(COLUMN_WIDTH - ROW_HEIGHT), 0, 0)
 
     local text = checkbox.Text or _G[checkbox:GetName() .. "Text"]
-    text:SetText(label)
     text:SetFontObject("GameFontHighlight")
+    text:ClearAllPoints()
+    text:SetPoint("LEFT", checkbox, "RIGHT", 2, 0)
+    text:SetWidth(COLUMN_WIDTH - ROW_HEIGHT - 4)
+    text:SetJustifyH("LEFT")
+    text:SetWordWrap(false)
+    text:SetText(label)
 
     checkbox:SetScript("OnShow", function(self)
         self:SetChecked(ErzbaroneUISettings[key])
@@ -85,6 +161,19 @@ local function CreateSettingCheckbox(parent, anchor, key, label, tooltip, onChan
     return checkbox
 end
 
+--- Creates a section header with a divider line below it and returns the divider as anchor.
+local function CreateSectionHeader(parent, anchor, offsetX, offsetY, title)
+    local header = parent:CreateFontString(nil, "ARTWORK", "GameFontNormal")
+    header:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", offsetX, offsetY)
+    header:SetText(title)
+
+    local divider = parent:CreateTexture(nil, "ARTWORK")
+    divider:SetColorTexture(1, 1, 1, 0.15)
+    divider:SetSize(COLUMN_WIDTH, 1)
+    divider:SetPoint("TOPLEFT", header, "BOTTOMLEFT", 0, -4)
+    return divider
+end
+
 --- Registers the ErzbaroneUI panel in the game's Options -> AddOns screen.
 function ErzbaroneUI.Config:RegisterSettingsPanel()
     if self.Panel then
@@ -99,63 +188,31 @@ function ErzbaroneUI.Config:RegisterSettingsPanel()
     title:SetText("Erzbarone UI")
 
     local subtitle = panel:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
-    subtitle:SetPoint("TOPLEFT", title, "BOTTOMLEFT", 0, -8)
-    subtitle:SetText("A World of Warcraft Forever Interface Improvement")
+    subtitle:SetPoint("TOPLEFT", title, "BOTTOMLEFT", 0, -6)
+    subtitle:SetText("A World of Warcraft Forever Interface Improvement. Hover a setting for details.")
 
-    local generalHeader = panel:CreateFontString(nil, "ARTWORK", "GameFontNormal")
-    generalHeader:SetPoint("TOPLEFT", subtitle, "BOTTOMLEFT", 0, -24)
-    generalHeader:SetText("General")
+    -- Each column starts below the subtitle and stacks its sections downwards
+    local columnAnchors = {
+        { frame = subtitle, x = 0 },
+        { frame = subtitle, x = COLUMN_WIDTH + COLUMN_GAP },
+    }
 
-    local autoSell = CreateSettingCheckbox(panel, generalHeader, "autoSellGreyItems", "Auto Sell Grey Items",
-        "Automatically sells all grey (poor quality) items when visiting a merchant.")
-    local autoRepair = CreateSettingCheckbox(panel, autoSell, "autoRepair", "Auto Repair Items",
-        "Automatically repairs all items when visiting a merchant that can repair.")
+    for _, section in ipairs(SECTIONS) do
+        local column = columnAnchors[section.column]
+        local isFirst = column.frame == subtitle
+        local anchor = CreateSectionHeader(panel, column.frame, isFirst and column.x or 0,
+            isFirst and -18 or -SECTION_GAP, section.title)
 
-    local visualsHeader = panel:CreateFontString(nil, "ARTWORK", "GameFontNormal")
-    visualsHeader:SetPoint("TOPLEFT", autoRepair, "BOTTOMLEFT", 0, -16)
-    visualsHeader:SetText("Visuals")
+        local previous = anchor
+        for index, setting in ipairs(section.settings) do
+            local checkbox = CreateSettingCheckbox(panel, setting[1], setting[2], setting[3], setting[4])
+            checkbox:SetPoint("TOPLEFT", previous, "BOTTOMLEFT", 0, index == 1 and -4 or 0)
+            previous = checkbox
+        end
 
-    local vignette = CreateSettingCheckbox(panel, visualsHeader, "vignette", "Show Vignette Effect",
-        "Darkens the edges of the screen with a vignette overlay.",
-        function() ErzbaroneUI.Effects:UpdateVignette() end)
-
-    local unitFramesHeader = panel:CreateFontString(nil, "ARTWORK", "GameFontNormal")
-    unitFramesHeader:SetPoint("TOPLEFT", vignette, "BOTTOMLEFT", 0, -16)
-    unitFramesHeader:SetText("Unit Frames")
-
-    local fiveSecondRule = CreateSettingCheckbox(panel, unitFramesHeader, "fiveSecondRuleTimer", "Show Five Second Rule Timer",
-        "Shows a spark moving across your mana bar for 5 seconds after casting a spell that costs mana. Mana regeneration from Spirit resumes once it has passed.",
-        function() ErzbaroneUI.FiveSecondRule:Update() end)
-
-    local actionBarsHeader = panel:CreateFontString(nil, "ARTWORK", "GameFontNormal")
-    actionBarsHeader:SetPoint("TOPLEFT", fiveSecondRule, "BOTTOMLEFT", 0, -16)
-    actionBarsHeader:SetText("Action Bars")
-
-    local castCount = CreateSettingCheckbox(panel, actionBarsHeader, "castCount", "Show Cast Count",
-        "Shows how often each mana spell can be cast with your current mana in the bottom left corner of its action button.",
-        function() ErzbaroneUI.CastCount:Update() end)
-    local rangeTint = CreateSettingCheckbox(panel, castCount, "rangeTint", "Tint Buttons Out of Range",
-        "Tints the whole action button red while your target is out of range of that action.",
-        function() ErzbaroneUI.RangeTint:Update() end)
-    local fadeRightBars = CreateSettingCheckbox(panel, rangeTint, "fadeRightBars", "Show Right Bars on Mouseover",
-        "Hides the vertical action bars on the right side of the screen until you move your mouse over them.",
-        function() ErzbaroneUI.BarFade:Update() end)
-
-    local chatHeader = panel:CreateFontString(nil, "ARTWORK", "GameFontNormal")
-    chatHeader:SetPoint("TOPLEFT", fadeRightBars, "BOTTOMLEFT", 0, -16)
-    chatHeader:SetText("Chat")
-
-    local hideChat = CreateSettingCheckbox(panel, chatHeader, "hideChatButtons", "Hide Chat Buttons",
-        "Hides the button column left of the chat window (chat menu, channels, voice, quick join and text to speech).",
-        function() ErzbaroneUI.Chat:Update() end)
-
-    local minimapHeader = panel:CreateFontString(nil, "ARTWORK", "GameFontNormal")
-    minimapHeader:SetPoint("TOPLEFT", hideChat, "BOTTOMLEFT", 0, -16)
-    minimapHeader:SetText("Minimap")
-
-    CreateSettingCheckbox(panel, minimapHeader, "compactMinimap", "Compact Minimap",
-        "Removes the header above the minimap, moves the minimap up and places tracking, calendar, mail and addon buttons on its border. The server time is shown inside the minimap and the zone name appears while hovering it.",
-        function() ErzbaroneUI.Minimap:Update() end)
+        column.frame = previous
+        column.x = 0
+    end
 
     local category = Settings.RegisterCanvasLayoutCategory(panel, panel.name)
     Settings.RegisterAddOnCategory(category)
