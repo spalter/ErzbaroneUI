@@ -15,6 +15,7 @@ local defaults = {
     hideChatButtons = true,
     compactMinimap = true,
     fadeMinimapButtons = true,
+    unitFrameTexture = "classic",
 }
 
 --- Initializes the configuration settings for ErzbaroneUI.
@@ -85,6 +86,10 @@ local SECTIONS = {
             { "fiveSecondRuleTimer", "Five Second Rule Timer",
                 "Shows a spark moving across your mana bar for 5 seconds after casting a spell that costs mana. Mana regeneration from Spirit resumes once it has passed.",
                 function() ErzbaroneUI.FiveSecondRule:Update() end },
+            { "unitFrameTexture", "Bar Texture",
+                "Replaces the flat health and power bar textures of the player, target, focus, pet and party frames. Custom uses textures\\statusbar.tga or .blp inside the addon folder.",
+                function() ErzbaroneUI.StatusBars:Update() end,
+                function() return ErzbaroneUI.StatusBars:GetTextureOptions() end },
         },
     },
     {
@@ -165,6 +170,52 @@ local function CreateSettingCheckbox(parent, key, label, tooltip, onChange)
     return checkbox
 end
 
+--- Creates a labeled dropdown bound to a string entry in ErzbaroneUISettings.
+--- getOptions returns a list of { value, label } pairs.
+local function CreateSettingDropdown(parent, key, label, tooltip, onChange, getOptions)
+    local row = CreateFrame("Frame", nil, parent)
+    row:SetSize(COLUMN_WIDTH, ROW_HEIGHT + 4)
+
+    local text = row:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
+    text:SetPoint("LEFT", row, "LEFT", 4, 0)
+    text:SetText(label)
+
+    local dropdown = CreateFrame("DropdownButton", nil, row, "WowStyle1DropdownTemplate")
+    dropdown:SetPoint("RIGHT", row, "RIGHT", -4, 0)
+    dropdown:SetWidth(170)
+    dropdown:SetupMenu(function(_, rootDescription)
+        for _, option in ipairs(getOptions()) do
+            local value = option[1]
+            rootDescription:CreateRadio(option[2], function()
+                return ErzbaroneUISettings[key] == value
+            end, function()
+                ErzbaroneUISettings[key] = value
+                if onChange then
+                    onChange(value)
+                end
+            end)
+        end
+    end)
+
+    if tooltip then
+        local function ShowTooltip(owner)
+            GameTooltip:SetOwner(owner, "ANCHOR_RIGHT")
+            GameTooltip:SetText(label, 1, 1, 1)
+            GameTooltip:AddLine(tooltip, nil, nil, nil, true)
+            GameTooltip:Show()
+        end
+        row:SetScript("OnEnter", ShowTooltip)
+        row:SetScript("OnLeave", GameTooltip_Hide)
+        dropdown:HookScript("OnEnter", ShowTooltip)
+        dropdown:HookScript("OnLeave", GameTooltip_Hide)
+    end
+
+    row:SetScript("OnShow", function()
+        dropdown:GenerateMenu()
+    end)
+    return row
+end
+
 --- Creates a section header with a divider line below it and returns the divider as anchor.
 local function CreateSectionHeader(parent, anchor, offsetX, offsetY, title)
     local header = parent:CreateFontString(nil, "ARTWORK", "GameFontNormal")
@@ -209,9 +260,14 @@ function ErzbaroneUI.Config:RegisterSettingsPanel()
 
         local previous = anchor
         for index, setting in ipairs(section.settings) do
-            local checkbox = CreateSettingCheckbox(panel, setting[1], setting[2], setting[3], setting[4])
-            checkbox:SetPoint("TOPLEFT", previous, "BOTTOMLEFT", 0, index == 1 and -4 or 0)
-            previous = checkbox
+            local control
+            if setting[5] then
+                control = CreateSettingDropdown(panel, setting[1], setting[2], setting[3], setting[4], setting[5])
+            else
+                control = CreateSettingCheckbox(panel, setting[1], setting[2], setting[3], setting[4])
+            end
+            control:SetPoint("TOPLEFT", previous, "BOTTOMLEFT", 0, index == 1 and -4 or 0)
+            previous = control
         end
 
         column.frame = previous
