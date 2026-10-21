@@ -29,6 +29,7 @@ frame:SetScript("OnEvent", function(_, event, name)
         ErzbaroneUI.CastCount:Initialize()
         ErzbaroneUI.RangeTint:Initialize()
         ErzbaroneUI.Chat:Initialize()
+        ErzbaroneUI.Minimap:Initialize()
     end
 
     -- Handle merchant show event to auto-sell grey items

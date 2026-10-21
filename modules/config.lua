@@ -12,6 +12,7 @@ local defaults = {
     castCount = true,
     rangeTint = true,
     hideChatButtons = true,
+    compactMinimap = true,
 }
 
 --- Initializes the configuration settings for ErzbaroneUI.
@@ -140,9 +141,17 @@ function ErzbaroneUI.Config:RegisterSettingsPanel()
     chatHeader:SetPoint("TOPLEFT", rangeTint, "BOTTOMLEFT", 0, -16)
     chatHeader:SetText("Chat")
 
-    CreateSettingCheckbox(panel, chatHeader, "hideChatButtons", "Hide Chat Buttons",
+    local hideChat = CreateSettingCheckbox(panel, chatHeader, "hideChatButtons", "Hide Chat Buttons",
         "Hides the button column left of the chat window (chat menu, channels, voice, quick join and text to speech).",
         function() ErzbaroneUI.Chat:Update() end)
+
+    local minimapHeader = panel:CreateFontString(nil, "ARTWORK", "GameFontNormal")
+    minimapHeader:SetPoint("TOPLEFT", hideChat, "BOTTOMLEFT", 0, -16)
+    minimapHeader:SetText("Minimap")
+
+    CreateSettingCheckbox(panel, minimapHeader, "compactMinimap", "Compact Minimap",
+        "Removes the header above the minimap, moves the minimap up and places tracking, calendar, mail and addon buttons on its border. The server time is shown inside the minimap and the zone name appears while hovering it.",
+        function() ErzbaroneUI.Minimap:Update() end)
 
     local category = Settings.RegisterCanvasLayoutCategory(panel, panel.name)
     Settings.RegisterAddOnCategory(category)

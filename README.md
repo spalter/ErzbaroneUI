@@ -16,6 +16,7 @@ To open the configuration, go to Game Menu → Options → AddOns → ErzbaroneU
 - Cast count on action buttons (how often a mana spell can be cast with the current mana)
 - Red tint on action buttons while the target is out of range
 - Hides the button column left of the chat window
+- Compact minimap: removes the header, places tracking, calendar, mail and addon buttons on the minimap border and shows the server time inside the minimap
 
 ## Screenshots
 
