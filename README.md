@@ -1,11 +1,15 @@
 # ErzbaroneUI
 
-A reduced World of Warcraft Classic Era Interface
+A reduced World of Warcraft Forever Interface
 
 ## Usage
 
-Extract the `ErzbaroneUI` directory from the release zip into the `World of Warcraft\_classic_era_\Interface\AddOns\` directory.
+Extract the `ErzbaroneUI` directory from the release zip into the `World of Warcraft\_forever_\Interface\AddOns\` directory.
 To open the configuration, go to Game Menu → Options → AddOns → ErzbaroneUI or type `/eui`.
+
+### Via CurseForge
+
+The addon is available on CurseForge too, search for `ErzbaroneUI` or [on their website](https://www.curseforge.com/wow/addons/erzbaroneui).
 
 ## Features
 
@@ -33,5 +37,7 @@ To open the configuration, go to Game Menu → Options → AddOns → ErzbaroneU
 
 ## Credits
 
-- [FiveSeconRule](https://github.com/smp4903/FiveSecondRule)
+- [FiveSecondRule](https://github.com/smp4903/FiveSecondRule) and [WeaponSwingTimer](https://github.com/LeftHandedGlove/WeaponSwingTimerAddon) for the idea of the timer sparks on the power bar
+- [wow-ui-source](https://github.com/Gethe/wow-ui-source) by Gethe, the Blizzard interface source used as reference
+- [Warcraft Wiki](https://warcraft.wiki.gg/wiki/World_of_Warcraft_API) for the API documentation
 - [World of Warcraft Programming](https://wowprogramming.com/index.html)
