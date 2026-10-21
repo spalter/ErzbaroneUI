@@ -1,0 +1,18 @@
+## Interface: 16001
+## Title: ErzbaroneUI
+## Author: spalt_er
+## Version: 0.0.1
+## Notes: A World of Warcraft Forever Interface Improvement
+## SavedVariables: ErzbaroneUISettings
+
+# Modules
+modules\config.lua
+modules\effects.lua
+modules\fivesecondrule.lua
+modules\castcount.lua
+modules\rangetint.lua
+modules\chat.lua
+modules\utils.lua
+
+# Core
+main.lua
