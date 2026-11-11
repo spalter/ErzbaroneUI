@@ -14,11 +14,11 @@ local originalContainers = {}
 local originalDividers = {}
 local originalStatusBars = {}
 local originalAuxiliaryBars = {}
+local auxiliaryAnchors = {}
 local originalCastBar
 local originalSlotArt = {}
 local originalBorderArtShown
-local originalLeftCapPoints
-local originalRightCapPoints
+local originalEndCaps = {}
 local originalPageNumberParent
 local originalPageNumberPoints
 local resizingStatusBar = false
@@ -133,6 +133,10 @@ local function MaintainCastBarPosition(bar)
     MaintainPosition(bar, originalCastBar)
 end
 
+local function MaintainEndCapPosition(cap)
+    MaintainPosition(cap, originalEndCaps[cap])
+end
+
 local function RestoreCastBar()
     if originalCastBar then
         local points = originalCastBar.points
@@ -184,9 +188,10 @@ local function RestoreCustomBars()
     if MainActionBar.BorderArt then
         MainActionBar.BorderArt:SetShown(originalBorderArtShown)
     end
-    if MainActionBar.EndCaps then
-        SetPoints(MainActionBar.EndCaps.LeftEndCap, originalLeftCapPoints)
-        SetPoints(MainActionBar.EndCaps.RightEndCap, originalRightCapPoints)
+    local endCaps = originalEndCaps
+    originalEndCaps = {}
+    for cap, state in pairs(endCaps) do
+        SetPoints(cap, state.points)
     end
     if MainActionBar.ActionBarPageNumber then
         MainActionBar.ActionBarPageNumber:SetParent(originalPageNumberParent)
@@ -202,6 +207,12 @@ local function RestoreVisuals()
     RestoreCustomBars()
     RestoreCastBar()
     for bar, state in pairs(originalAuxiliaryBars) do
+        for button, points in pairs(state.buttonPoints or {}) do
+            SetPoints(button, points)
+        end
+        if auxiliaryAnchors[bar] then
+            auxiliaryAnchors[bar]:Hide()
+        end
         SetPoints(bar, state.points)
     end
     originalAuxiliaryBars = {}
@@ -257,8 +268,9 @@ local function ApplyCustomBars(width, rowY, left, bottom, leftWidth, mainHeight,
             end
         end
         originalBorderArtShown = MainActionBar.BorderArt and MainActionBar.BorderArt:IsShown()
-        originalLeftCapPoints = GetPoints(MainActionBar.EndCaps.LeftEndCap)
-        originalRightCapPoints = GetPoints(MainActionBar.EndCaps.RightEndCap)
+        for _, cap in ipairs({ MainActionBar.EndCaps.LeftEndCap, MainActionBar.EndCaps.RightEndCap }) do
+            originalEndCaps[cap] = { points = GetPoints(cap) }
+        end
         originalPageNumberParent = MainActionBar.ActionBarPageNumber:GetParent()
         originalPageNumberPoints = GetPoints(MainActionBar.ActionBarPageNumber)
         for index = 1, 6 do
@@ -323,15 +335,15 @@ local function ApplyCustomBars(width, rowY, left, bottom, leftWidth, mainHeight,
     mainBar.background:SetPoint("BOTTOMRIGHT", mainBar, "BOTTOMRIGHT", 4, -BACKGROUND_BOTTOM_OVERHANG)
     mainBar.background:Show()
 
-    SetPoints(MainActionBar.EndCaps.LeftEndCap, {
+    originalEndCaps[MainActionBar.EndCaps.LeftEndCap].customPoints = {
         { "RIGHT", mainBar, "BOTTOMLEFT",
             30 / mainScale,
             (5 + mainHeight / 2) / mainScale },
-    })
-    SetPoints(MainActionBar.EndCaps.RightEndCap, {
+    }
+    originalEndCaps[MainActionBar.EndCaps.RightEndCap].customPoints = {
         { "LEFT", mainBar, "BOTTOMLEFT",
             (width - 30) / mainScale, (5 + mainHeight / 2) / mainScale },
-    })
+    }
     MainActionBar.ActionBarPageNumber:SetParent(mainBar)
     SetPoints(MainActionBar.ActionBarPageNumber, {
         { "BOTTOMRIGHT", mainBar, "BOTTOMLEFT", -4 / mainScale, 9 / mainScale },
@@ -349,6 +361,9 @@ local function ApplyCustomBars(width, rowY, left, bottom, leftWidth, mainHeight,
 
     HideNativeDividers()
     customBarsApplied = true
+    for cap in pairs(originalEndCaps) do
+        MaintainEndCapPosition(cap)
+    end
     for button in pairs(originalSlotArt) do
         ApplySlotArt(button)
     end
@@ -379,6 +394,41 @@ local function ApplyStatusBars(width, left, bottom, rowY)
     return top
 end
 
+local function AnchorAuxiliaryButtons(bar, state)
+    if not bar.actionButtons then
+        return
+    end
+    local anchor = auxiliaryAnchors[bar]
+    if not anchor then
+        anchor = CreateFrame("Frame", nil, bar, "SecureHandlerStateTemplate")
+        anchor.ignoreInLayout = true
+        auxiliaryAnchors[bar] = anchor
+    end
+    SetPoints(anchor, state.customPoints)
+    anchor:SetSize(bar:GetWidth(), bar:GetHeight())
+    anchor:Show()
+    state.buttonPoints = state.buttonPoints or {}
+    local barScale = bar:GetEffectiveScale()
+    local left, bottom = bar:GetLeft() * barScale, bar:GetBottom() * barScale
+    for _, button in ipairs(bar.actionButtons) do
+        local x, y = button.container:GetCenter()
+        -- Unused stance containers may not have been laid out yet.
+        if x and y then
+            if not state.buttonPoints[button] then
+                state.buttonPoints[button] = GetPoints(button)
+            end
+            local containerScale = button.container:GetEffectiveScale()
+            local buttonScale = button:GetEffectiveScale()
+            -- Native containers still drive sizing/visibility, but their combat movement must not move the buttons.
+            SetPoints(button, {
+                { "CENTER", anchor, "BOTTOMLEFT",
+                    (x * containerScale - left) / buttonScale,
+                    (y * containerScale - bottom) / buttonScale },
+            })
+        end
+    end
+end
+
 local function ApplyAuxiliaryBars(left, top)
     -- Pre-anchor hidden controls above the visible stack so they can appear in combat.
     for _, shown in ipairs({ true, false }) do
@@ -393,6 +443,7 @@ local function ApplyAuxiliaryBars(left, top)
                     { "BOTTOMLEFT", UIParent, "BOTTOM", left / scale, y / scale },
                 }
                 MaintainAuxiliaryBarPosition(bar)
+                AnchorAuxiliaryButtons(bar, originalAuxiliaryBars[bar])
                 if shown then
                     top = y + bar:GetHeight() * scale
                     y = top + GAP
@@ -446,6 +497,11 @@ function ErzbaroneUI.ActionLayout:Update()
     end
     if not StanceBar or not PetActionBar or not PossessActionBar or not MainMenuBarVehicleLeaveButton then
         return ReportError("The Forever auxiliary action bars are missing. The layout was not changed.")
+    end
+    for _, bar in ipairs({ StanceBar, PetActionBar, PossessActionBar }) do
+        if not bar.actionButtons or #bar.actionButtons == 0 then
+            return ReportError("The Forever auxiliary action-button templates are not ready. The layout was not changed.")
+        end
     end
     if not PlayerCastingBarFrame then
         return ReportError("The Forever player cast bar is missing. The layout was not changed.")
@@ -529,10 +585,22 @@ function ErzbaroneUI.ActionLayout:Initialize()
             hooksecurefunc(bar, bar.ClearAllPointsBase and "ClearAllPointsBase" or "ClearAllPoints", MaintainStatusBarPosition)
         end
     end
+    if MainActionBar and MainActionBar.EndCaps then
+        for _, cap in pairs({ MainActionBar.EndCaps.LeftEndCap, MainActionBar.EndCaps.RightEndCap }) do
+            if not hookedFrames[cap] then
+                hookedFrames[cap] = true
+                hooksecurefunc(cap, cap.SetPointBase and "SetPointBase" or "SetPoint", MaintainEndCapPosition)
+                hooksecurefunc(cap, cap.ClearAllPointsBase and "ClearAllPointsBase" or "ClearAllPoints", MaintainEndCapPosition)
+            end
+        end
+    end
     for _, bar in pairs(GetAuxiliaryBars()) do
         if not hookedFrames[bar] then
             hookedFrames[bar] = true
             hooksecurefunc(bar, "ApplySystemAnchor", Reapply)
+            if bar.actionButtons then
+                hooksecurefunc(bar, "UpdateGridLayout", Reapply)
+            end
             hooksecurefunc(bar, bar.SetPointBase and "SetPointBase" or "SetPoint", MaintainAuxiliaryBarPosition)
             hooksecurefunc(bar, bar.ClearAllPointsBase and "ClearAllPointsBase" or "ClearAllPoints", MaintainAuxiliaryBarPosition)
             hooksecurefunc(bar, bar.SetScaleBase and "SetScaleBase" or "SetScale", Reapply)

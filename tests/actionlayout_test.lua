@@ -18,6 +18,26 @@ local protectedFields = { numRows = true, numButtonsShowable = true, isHorizonta
     systemInfo = true, snappedToFrame = true, oldGridSettings = true, bar = true,
     container = true, index = true, commandName = true }
 
+local anchorOffsets = {
+    BOTTOMLEFT = { 0, 0 }, BOTTOM = { 0.5, 0 }, BOTTOMRIGHT = { 1, 0 },
+    LEFT = { 0, 0.5 }, CENTER = { 0.5, 0.5 }, RIGHT = { 1, 0.5 },
+    TOPLEFT = { 0, 1 }, TOP = { 0.5, 1 }, TOPRIGHT = { 1, 1 },
+}
+
+local function FramePosition(frame, axis)
+    if frame == UIParent then return 0 end
+    local point = frame.points[1]
+    if not point then return nil end
+    local relative = point[2] or frame:GetParent() or UIParent
+    local scale = relative:GetEffectiveScale() / frame:GetEffectiveScale()
+    local origin = axis == 1 and relative:GetLeft() or relative:GetBottom()
+    if not origin then return nil end
+    local relativeSize = axis == 1 and relative:GetWidth() or relative:GetHeight()
+    local size = axis == 1 and frame:GetWidth() or frame:GetHeight()
+    return (origin + relativeSize * anchorOffsets[point[3]][axis]) * scale
+        + (point[axis + 3] or 0) - size * anchorOffsets[point[1]][axis]
+end
+
 local function Frame(name)
     local data = { name = name, width = 36, height = 36, scale = 1, shown = true, alpha = 1,
         mouseEnabled = true, attributes = {}, points = { { "BOTTOM", UIParent, "BOTTOM", 20, 30 } } }
@@ -31,8 +51,15 @@ local function Frame(name)
     function frame:GetWidth() return self.width end
     function frame:GetHeight() return self.height end
     function frame:GetScale() return self.scale end
-    function frame:GetEffectiveScale() return self.scale end
-    function frame:GetLeft() return self.left end
+    function frame:GetEffectiveScale()
+        return self.scale * (self.parent and self.parent:GetEffectiveScale() or 1)
+    end
+    function frame:GetLeft() return self.left or FramePosition(self, 1) end
+    function frame:GetBottom() return FramePosition(self, 2) end
+    function frame:GetCenter()
+        local left, bottom = self:GetLeft(), self:GetBottom()
+        if left and bottom then return left + self.width / 2, bottom + self.height / 2 end
+    end
     function frame:GetAlpha() return self.alpha end
     function frame:GetParent() return self.parent end
     function frame:IsMouseOver() return self.hovered or false end
@@ -276,6 +303,11 @@ local function Setup(deferInitialization)
     local caps = MainActionBar.EndCaps
     caps.LeftEndCap, caps.RightEndCap = Frame("leftCap"), Frame("rightCap")
     caps.LeftEndCap.width, caps.RightEndCap.width, caps.LeftEndCap.left = 100, 100, 600
+    for _, cap in ipairs({ caps.LeftEndCap, caps.RightEndCap }) do
+        cap.protected = false
+        cap.ClearAllPointsBase, cap.SetPointBase = cap.ClearAllPoints, cap.SetPoint
+        cap.ClearAllPoints, cap.SetPoint = Forbidden, Forbidden
+    end
     MainActionBar.ActionBarPageNumber = Frame("pageNumber")
     MainActionBar.ActionBarPageNumber.parent = MainActionBar
     PlayerCastingBarFrame = Frame("playerCastBar")
@@ -298,6 +330,28 @@ local function Setup(deferInitialization)
         bar.nativeClick = function(self) self.clicked = true end
         bar.OnClick = bar.nativeClick
         bar.OnShow = function(self) self.nativeShowCalled = true end
+        if bar ~= MainMenuBarVehicleLeaveButton then
+            bar.actionButtons = {}
+            bar.width = 94
+            bar.UpdateGridLayout = function() end
+            for index = 1, 3 do
+                local container = Frame("auxiliaryContainer")
+                container.parent = bar
+                container:SetSize(30, 30)
+                container:ClearAllPoints()
+                container:SetPoint("BOTTOMLEFT", bar, "BOTTOMLEFT", (index - 1) * 32, 0)
+                local button = Frame("auxiliaryButton")
+                button.parent, button.container, button.bar = container, container, bar
+                button.OnClick = bar.nativeClick
+                button:ClearAllPoints()
+                button:SetPoint("CENTER", container, "CENTER", 0, 0)
+                bar.actionButtons[index] = button
+                if bar == StanceBar and index == 3 then
+                    container:ClearAllPoints()
+                    container.shown, button.shown = false, false
+                end
+            end
+        end
     end
     MainStatusTrackingBarContainer, SecondaryStatusTrackingBarContainer = Frame("mainStatus"), Frame("secondaryStatus")
     for _, bar in ipairs({ MainStatusTrackingBarContainer, SecondaryStatusTrackingBarContainer }) do
@@ -394,6 +448,27 @@ Equal(SecureAttribute(customBar3.actionButtons[1], "actionpage"), 5)
 Equal(customMainBar.actionButtons[2]:GetAttribute("showgrid"), 2)
 Equal(customMainBar.background.atlas, "UI-HUD-ActionBar-Frame")
 Equal(customBar3.background.atlas, "UI-HUD-ActionBar-Frame")
+
+local function AssertEndCapsResistNativeAnchors()
+    for _, cap in ipairs({ MainActionBar.EndCaps.LeftEndCap, MainActionBar.EndCaps.RightEndCap }) do
+        local expected = { cap:GetPoint(1) }
+        for attempt = 1, 3 do
+            cap:ClearAllPointsBase()
+            Equal(cap:GetNumPoints(), 1, "Native clearing cannot leave gryphons unanchored for a frame")
+            cap:SetPointBase("BOTTOM", MainActionBar, "BOTTOM", 0, 0)
+            Equal(cap:GetNumPoints(), 1, "Native updates cannot leave competing gryphon anchors")
+            local actual = { cap:GetPoint(1) }
+            for index, value in ipairs(expected) do
+                Equal(actual[index], value, "Gryphon anchors are corrected before queued layout updates")
+            end
+        end
+    end
+end
+
+AssertEndCapsResistNativeAnchors()
+combat = true
+AssertEndCapsResistNativeAnchors()
+combat = false
 for index, button in ipairs(customBar3.actionButtons) do
     Equal(button.SlotArt:IsShown(), index <= 6, "Only the lower six buttons receive main-bar slot art")
     Equal(button.SlotBackground:IsShown(), index > 6, "Upper row keeps its native backdrop")
@@ -493,6 +568,7 @@ local function AssertBlockWidth(width)
     local _, _, _, rightX = MainActionBar.EndCaps.RightEndCap:GetPoint(1)
     Equal(leftX, 30, "Left gryphon follows the block's left edge")
     Equal(rightX, width - 30, "Right gryphon follows the block's right edge")
+    AssertEndCapsResistNativeAnchors()
 end
 
 local function AssertAuxiliaryPosition(bar, left, bottom)
@@ -512,6 +588,45 @@ local function AssertAuxiliaryStack(left, top)
     AssertAuxiliaryPosition(PetActionBar, left, top + 38)
     AssertAuxiliaryPosition(PossessActionBar, left, top + 72)
     AssertAuxiliaryPosition(MainMenuBarVehicleLeaveButton, left, top + 72)
+end
+
+local function AssertCombatAuxiliaryButtons()
+    local positions = {}
+    for _, bar in ipairs({ StanceBar, PetActionBar, PossessActionBar }) do
+        for _, button in ipairs(bar.actionButtons) do
+            local x, y = button:GetCenter()
+            if x and y then
+                local scale = button:GetEffectiveScale() / UIParent:GetEffectiveScale()
+                positions[button] = { x * scale, y * scale, button:IsVisible() }
+            end
+        end
+    end
+    combat = true
+    for _, bar in ipairs({ StanceBar, PetActionBar, PossessActionBar }) do
+        -- Model Blizzard's privileged anchor writes without allowing addon writes in combat.
+        bar.points = { { "BOTTOMLEFT", UIParent, "BOTTOMLEFT", 5, 500 } }
+        hooks[bar].SetPointBase(bar)
+        bar:UpdateGridLayout()
+    end
+    Flush()
+    for button, position in pairs(positions) do
+        local x, y = button:GetCenter()
+        local scale = button:GetEffectiveScale() / UIParent:GetEffectiveScale()
+        assert(math.abs(x * scale - position[1]) < 0.000001,
+            "Native combat layout must not shift auxiliary buttons horizontally")
+        assert(math.abs(y * scale - position[2]) < 0.000001,
+            "Native combat layout must not shift auxiliary buttons vertically")
+        Equal(button:IsVisible(), position[3], "Stable anchors preserve native visibility")
+        Equal(button:GetParent(), button.container, "Native auxiliary button parents remain intact")
+        Equal(button.container:GetParent(), button.bar, "Native grid containers remain on their bar")
+        button:Click()
+        Equal(button.clicked, true, "Original auxiliary click handlers still work in combat")
+    end
+    Equal(ErzbaroneUI.MainBar.PendingUpdate, true)
+    combat = false
+    local regen = events.PLAYER_REGEN_ENABLED
+    regen.OnEvent(regen, "PLAYER_REGEN_ENABLED")
+    Flush()
 end
 
 local function AssertCastBar(top)
@@ -620,6 +735,10 @@ MainActionBar:SetScale(1.25)
 Notify()
 AssertAuxiliaryPosition(MainMenuBarVehicleLeaveButton, -398.75, 128.75)
 AssertCastBar(124.75)
+PetActionBar:SetScale(1.5)
+Flush()
+AssertCombatAuxiliaryButtons()
+PetActionBar:SetScale(1)
 MainActionBar:SetScale(1)
 MainMenuBarVehicleLeaveButton:SetScale(1)
 MainMenuBarVehicleLeaveButton:Hide()
@@ -639,6 +758,22 @@ for _, bar in ipairs({ StanceBar, PetActionBar, PossessActionBar, MainMenuBarVeh
     bar:SetPointBase("BOTTOM", UIParent, "BOTTOMLEFT", 5, 500)
 end
 AssertAuxiliaryStack(-342, 115)
+AssertCombatAuxiliaryButtons()
+AssertAuxiliaryStack(-342, 115)
+
+-- A genuine native grid change is reflected without moving or replacing its containers.
+local petContainer = PetActionBar.actionButtons[2].container
+petContainer:ClearAllPoints()
+petContainer:SetPoint("BOTTOMLEFT", PetActionBar, "BOTTOMLEFT", 64, 32)
+PetActionBar:UpdateGridLayout()
+Flush()
+local petX, petY = PetActionBar.actionButtons[2]:GetCenter()
+Equal(petX, UIParent:GetWidth() / 2 - 342 + 64 + 15)
+Equal(petY, 153 + 32 + 15)
+petContainer:ClearAllPoints()
+petContainer:SetPoint("BOTTOMLEFT", PetActionBar, "BOTTOMLEFT", 32, 0)
+PetActionBar:UpdateGridLayout()
+Flush()
 
 -- A secure/native visibility change in combat must defer the geometry update.
 combat = true
@@ -780,6 +915,15 @@ Equal(ErzbaroneUI.MainBar.PendingUpdate, false)
 Equal(customMainBar:IsShown(), false)
 AssertNativeCastBar()
 for _, bar in ipairs({ StanceBar, PetActionBar, PossessActionBar, MainMenuBarVehicleLeaveButton }) do
+    for _, button in ipairs(bar.actionButtons or {}) do
+        local point, parent, relativePoint, x, y = button:GetPoint(1)
+        Equal(point, "CENTER", "Disabling restores native auxiliary button anchors")
+        Equal(parent, button.container)
+        Equal(relativePoint, "CENTER")
+        Equal(x, 0)
+        Equal(y, 0)
+        Equal(button:GetParent(), button.container)
+    end
     local _, _, _, x, y = bar:GetPoint(1)
     Equal(x, 20, "Disabling restores native auxiliary anchors")
     Equal(y, 30)
@@ -794,6 +938,15 @@ local _, _, _, restoredX, restoredY = MainActionBar.actionButtons[1].container:G
 Equal(restoredX, 20, "Disabling restores native button anchors")
 Equal(restoredY, 30)
 Equal(MainActionBar.BorderArt:IsShown(), true)
+for _, cap in ipairs({ MainActionBar.EndCaps.LeftEndCap, MainActionBar.EndCaps.RightEndCap }) do
+    local _, _, _, x, y = cap:GetPoint(1)
+    Equal(x, 20, "Disabling restores native gryphon anchors")
+    Equal(y, 30)
+    cap:ClearAllPointsBase()
+    Equal(cap:GetNumPoints(), 0, "Disabled layout no longer enforces gryphon anchors")
+    cap:SetPointBase("BOTTOM", UIParent, "BOTTOM", 20, 30)
+    Equal(cap:GetPoint(1), "BOTTOM")
+end
 for _, button in ipairs(customBar3.actionButtons) do
     Equal(button.SlotArt:IsShown(), false, "Disabling restores native slot artwork")
     Equal(button.SlotBackground:IsShown(), true, "Disabling restores native slot backgrounds")

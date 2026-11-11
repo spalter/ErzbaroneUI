@@ -34,7 +34,9 @@ The addon is available on CurseForge too, search for `ErzbaroneUI` or [on their 
 ## Development
 
 Run the layout regression tests with `lua tests\actionlayout_test.lua`.
-They reject all Edit Mode profile API calls and writes to native secure button references. They check native button reuse and modeled clicks/paging, adaptive action/auxiliary-bar placement and stacking, divider suppression, immediate XP resizing and marker updates, runtime restoration, resets, reloads and combat deferral.
+They reject all Edit Mode profile API calls and writes to native secure button references. They check native button reuse and modeled clicks/paging, adaptive action/auxiliary-bar placement and stacking, stable stance/shapeshift, pet and possession button positions during native combat reanchoring, divider suppression, immediate XP resizing and marker updates, runtime restoration, resets, reloads and combat deferral.
+Auxiliary buttons use stable anchors prepared outside combat while their native containers, visibility and click handlers remain unchanged. Grid and stacking changes during combat are applied after combat ends.
+Gryphon anchors are maintained synchronously during native layout updates to avoid briefly reverting to their default positions; tests check this without flushing queued updates.
 Actual combat protection still needs testing in the Forever client.
 
 ## Screenshots
