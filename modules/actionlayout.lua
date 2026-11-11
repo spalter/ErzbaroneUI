@@ -11,6 +11,7 @@ local customBarsApplied = false
 local hookedFrames = {}
 local customBars = {}
 local originalContainers = {}
+local originalSelections = {}
 local originalDividers = {}
 local originalStatusBars = {}
 local originalAuxiliaryBars = {}
@@ -24,6 +25,7 @@ local originalPageNumberPoints
 local resizingStatusBar = false
 local positioningFrame = false
 local lastError
+local warnedSelection = false
 
 --- Prints a layout error only when its message changes and reports failure.
 local function ReportError(message)
@@ -194,6 +196,10 @@ local function RestoreCustomBars()
         container:SetParent(state.parent)
         SetPoints(container, state.points)
     end
+    for selection, points in pairs(originalSelections) do
+        SetPoints(selection, points)
+    end
+    originalSelections = {}
     for divider, alpha in pairs(originalDividers) do
         divider:SetAlpha(alpha)
     end
@@ -329,6 +335,15 @@ local function ApplyCustomBars(width, rowY, left, bottom, leftWidth, mainHeight,
         customBar:SetSize(barWidth / scale, barHeight / scale)
         customBar:Show()
         local nativeBar = bars[barIndex]
+        if nativeBar.Selection then
+            if not originalSelections[nativeBar.Selection] then
+                originalSelections[nativeBar.Selection] = GetPoints(nativeBar.Selection)
+            end
+            if not ErzbaroneUI.Utils:AlignSelection(nativeBar, customBar) and not warnedSelection then
+                warnedSelection = true
+                print("ErzbaroneUI: Action bar Edit Mode selections are not ready. Their positions will be retried on the next layout update.")
+            end
+        end
         local padding = math.max(nativeBar.minButtonPadding, nativeBar.buttonPadding)
         local rowX = 0
         for index, button in ipairs(customBar.actionButtons) do
@@ -592,8 +607,11 @@ function ErzbaroneUI.ActionLayout:Initialize()
             end)
             hooksecurefunc(bar, "SetShowGrid", Reapply)
             hooksecurefunc(bar, "ApplySystemAnchor", Reapply)
+            hooksecurefunc(bar, "AnchorSelectionFrame", Reapply)
+            hooksecurefunc(bar, bar.SetPointBase and "SetPointBase" or "SetPoint", Reapply)
             bar:HookScript("OnShow", Reapply)
             bar:HookScript("OnHide", Reapply)
+            bar:HookScript("OnSizeChanged", Reapply)
             if bar == MainActionBar then
                 hooksecurefunc(bar, "UpdateDividers", function()
                     if customBarsApplied then

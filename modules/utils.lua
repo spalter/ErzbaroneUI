@@ -16,6 +16,22 @@ local ACTION_BUTTON_PREFIXES = {
     "BonusActionButton",
 }
 
+--- Aligns an Edit Mode selection while retaining offsets relative to its system frame.
+function ErzbaroneUI.Utils:AlignSelection(system, target)
+    local left, right, bottom, top = system:GetLeft(), system:GetRight(), system:GetBottom(), system:GetTop()
+    local targetLeft, targetRight, targetBottom, targetTop = target:GetLeft(), target:GetRight(), target:GetBottom(), target:GetTop()
+    if not left or not right or not bottom or not top
+        or not targetLeft or not targetRight or not targetBottom or not targetTop then
+        return false
+    end
+    local selection = system.Selection
+    local scale = target:GetEffectiveScale() / system:GetEffectiveScale()
+    selection:ClearAllPoints()
+    selection:SetPoint("TOPLEFT", system, "TOPLEFT", targetLeft * scale - left, targetTop * scale - top)
+    selection:SetPoint("BOTTOMRIGHT", system, "BOTTOMRIGHT", targetRight * scale - right, targetBottom * scale - bottom)
+    return true
+end
+
 --- Calls the given function for every existing default action bar button.
 function ErzbaroneUI.Utils:ForEachActionButton(callback)
     for _, prefix in ipairs(ACTION_BUTTON_PREFIXES) do

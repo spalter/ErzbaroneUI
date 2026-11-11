@@ -27,7 +27,7 @@ The addon is available on CurseForge too, search for `ErzbaroneUI` or [on their 
 - Moves the chat window into the lower left corner
 - Hides the chat tabs until the mouse is over the chat window
 - Hides the vertical action bars on the right until hovered
-- Improved Main Actionbar Layout
+- Improved Main Actionbar Layout, with the menu next to the bags in the lower-right corner and Edit Mode selections aligned to the redesigned bars
 - Hides the bag names in the bag windows
 - Compact minimap: removes the header, places tracking, calendar, mail and addon buttons on the minimap border and shows the server time inside the minimap; the buttons can be hidden until the minimap is hovered
 

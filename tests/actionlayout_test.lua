@@ -56,6 +56,14 @@ local function Frame(name)
     end
     function frame:GetLeft() return self.left or FramePosition(self, 1) end
     function frame:GetBottom() return FramePosition(self, 2) end
+    function frame:GetRight()
+        local left = self:GetLeft()
+        return left and left + self.width
+    end
+    function frame:GetTop()
+        local bottom = self:GetBottom()
+        return bottom and bottom + self.height
+    end
     function frame:GetCenter()
         local left, bottom = self:GetLeft(), self:GetBottom()
         if left and bottom then return left + self.width / 2, bottom + self.height / 2 end
@@ -167,6 +175,7 @@ local function Frame(name)
     function frame:SetText(text) self.text = text end
     function frame:GetText() return self.text end
     frame.ApplySystemAnchor = Forbidden
+    frame.AnchorSelectionFrame = function() end
     frame.Layout = Forbidden
     frame.UpdateGridLayout = Forbidden
     frame.UpdateShownButtons = Forbidden
@@ -269,6 +278,13 @@ local function Setup(deferInitialization)
     local prefixes = { "ActionButton", "MultiBarBottomLeftButton", "MultiBarBottomRightButton" }
     for barIndex, bar in ipairs({ MainActionBar, MultiBarBottomLeft, MultiBarBottomRight }) do
         _G["ErzbaroneUI" .. suffixes[barIndex] .. "SecureBar"] = nil
+        bar.parent = UIParent
+        bar.Selection = Frame("actionSelection")
+        bar.Selection.parent = bar
+        bar.Selection.points = {
+            { "TOPLEFT", bar, "TOPLEFT", 0, 0 },
+            { "BOTTOMRIGHT", bar, "BOTTOMRIGHT", 0, 0 },
+        }
         bar.buttonTemplate, bar.actionButtons = templates[barIndex], {}
         bar.minButtonPadding, bar.buttonPadding = 2, 2
         bar:SetAttribute("actionpage", pages[barIndex])
@@ -376,7 +392,15 @@ local function Setup(deferInitialization)
     StatusTrackingBarManager = { GetExpectedWidth = Forbidden, UpdateBarsShown = function() end,
         CheckForLayoutChange = function() end }
     MicroMenuContainer, MicroMenu, BagsBar = Frame("MicroMenuContainer"), Frame("MicroMenu"), Frame("BagsBar")
+    MicroMenuContainer.parent = UIParent
     MicroMenu.parent = MicroMenuContainer
+    MicroMenuContainer.Selection = Frame("menuSelection")
+    MicroMenuContainer.Selection.parent = MicroMenuContainer
+    MicroMenuContainer.Selection.points = {
+        { "TOPLEFT", MicroMenuContainer, "TOPLEFT", 0, 0 },
+        { "BOTTOMRIGHT", MicroMenuContainer, "BOTTOMRIGHT", 0, 0 },
+    }
+    BagsBar.parent = UIParent
     BagsBar.SetScaleBase, BagsBar.SetScale = BagsBar.SetScale, Forbidden
     BagsBar.SetShownBase = BagsBar.SetShown
     BagsBar.OnUpdateEndCaps = function() end
@@ -431,6 +455,27 @@ AssertCustomShape()
 Equal(ErzbaroneUILayout, legacyState, "Legacy profile state is ignored")
 local customMainBar = ErzbaroneUIMainSecureBar
 local customBar2, customBar3 = ErzbaroneUIBottomLeftSecureBar, ErzbaroneUIBottomRightSecureBar
+local function AssertSelection(selection, target)
+    Equal(selection:GetNumPoints(), 2)
+    local system = selection:GetParent()
+    local scale = target:GetEffectiveScale() / system:GetEffectiveScale()
+    local point, relative, relativePoint, x, y = selection:GetPoint(1)
+    Equal(point, "TOPLEFT")
+    Equal(relative, system, "Selection offsets remain relative to the native system for Edit Mode snapping")
+    Equal(relativePoint, "TOPLEFT")
+    assert(math.abs(system:GetLeft() + x - target:GetLeft() * scale) < 0.0001)
+    assert(math.abs(system:GetTop() + y - target:GetTop() * scale) < 0.0001)
+    point, relative, relativePoint, x, y = selection:GetPoint(2)
+    Equal(point, "BOTTOMRIGHT")
+    Equal(relative, system)
+    Equal(relativePoint, "BOTTOMRIGHT")
+    assert(math.abs(system:GetRight() + x - target:GetRight() * scale) < 0.0001)
+    assert(math.abs(system:GetBottom() + y - target:GetBottom() * scale) < 0.0001)
+end
+for index, bar in ipairs({ MainActionBar, MultiBarBottomLeft, MultiBarBottomRight }) do
+    AssertSelection(bar.Selection, ({ customMainBar, customBar2, customBar3 })[index])
+end
+AssertSelection(MicroMenuContainer.Selection, MicroMenu:GetParent())
 Equal(customMainBar.template, "SecureHandlerStateTemplate")
 Equal(customMainBar.ignoreInLayout, true, "Custom containers do not participate in the native ResizeLayoutFrame")
 Equal(customMainBar:GetParent(), MainActionBar, "Native visibility remains inherited")
@@ -523,12 +568,36 @@ for _, bar in ipairs({ MainStatusTrackingBarContainer, SecondaryStatusTrackingBa
         Equal(offsetY, expectedY)
     end
 end
-local _, _, _, menuX, menuY = MicroMenu:GetParent():GetPoint(1)
-local leftCap = MainActionBar.EndCaps.LeftEndCap
-Equal(menuX, leftCap:GetLeft() * leftCap:GetEffectiveScale() / UIParent:GetEffectiveScale() - 8,
-    "Menu leaves an eight-unit gap left of gryphon")
-Equal(menuY, 12)
+local menuAnchor = MicroMenu:GetParent()
+local menuPoint, menuRelative, menuRelativePoint, menuX, menuY = menuAnchor:GetPoint(1)
+Equal(menuPoint, "BOTTOMRIGHT")
+Equal(menuRelative, BagsBar, "Menu follows the bag bar")
+Equal(menuRelativePoint, "BOTTOMLEFT")
+Equal(menuX, -8, "Menu leaves an eight-unit gap left of the bags")
+Equal(menuY, 0, "Menu and bags share a bottom edge")
+Equal(menuAnchor:GetLeft() + menuAnchor:GetWidth(),
+    BagsBar:GetLeft() * BagsBar:GetEffectiveScale() / menuAnchor:GetEffectiveScale() - 8)
 Equal(BagsBar:GetScale(), 1)
+local originalBagWidth = BagsBar:GetWidth()
+BagsBar:SetWidth(originalBagWidth + 40)
+BagsBar:SetScaleBase(0.75)
+hooks[BagsBar].SetScale(BagsBar, 0.75)
+Flush()
+AssertSelection(MicroMenuContainer.Selection, menuAnchor)
+assert(math.abs(menuAnchor:GetLeft() + menuAnchor:GetWidth()
+    - BagsBar:GetLeft() * BagsBar:GetEffectiveScale() / menuAnchor:GetEffectiveScale() + 8) < 0.0001,
+    "Gap remains fixed when bags change width and scale")
+assert(math.abs(menuAnchor:GetBottom()
+    - BagsBar:GetBottom() * BagsBar:GetEffectiveScale() / menuAnchor:GetEffectiveScale()) < 0.0001,
+    "Bottom edges remain aligned when bags change scale")
+BagsBar:SetWidth(originalBagWidth)
+BagsBar:SetScaleBase(1)
+hooks[BagsBar].SetScale(BagsBar, 1)
+Flush()
+MicroMenuContainer:ClearAllPoints()
+MicroMenuContainer:SetPoint("BOTTOM", UIParent, "BOTTOM", 35, 40)
+Flush()
+AssertSelection(MicroMenuContainer.Selection, menuAnchor)
 Equal(ErzbaroneUI.MainBar:GetChatBottomInset(), 0)
 
 -- Only Edit Mode's UI visibility is available; all profile operations are forbidden.
@@ -536,12 +605,20 @@ EditModeManagerFrame = setmetatable({
     IsEditModeActive = function() return editModeActive end,
 }, { __index = Forbidden, __newindex = Forbidden })
 editModeActive = true
+for _, bar in ipairs({ MainActionBar, MultiBarBottomLeft, MultiBarBottomRight, MicroMenuContainer }) do
+    bar:AnchorSelectionFrame()
+end
+Flush()
 MainActionBar.BorderArt:Show()
 MainActionBar:ClearAllPoints()
 MainActionBar:SetPoint("BOTTOM", UIParent, "BOTTOM", 0, 100)
 hooks[MainActionBar].UpdateGridLayout()
 Notify()
 AssertCustomShape()
+for index, bar in ipairs({ MainActionBar, MultiBarBottomLeft, MultiBarBottomRight }) do
+    AssertSelection(bar.Selection, ({ customMainBar, customBar2, customBar3 })[index])
+end
+AssertSelection(MicroMenuContainer.Selection, MicroMenu:GetParent())
 local lateDivider = Frame("lateActionDivider")
 MainActionBar.HorizontalDividersPool.active[lateDivider] = true
 MainActionBar:UpdateDividers()
@@ -956,6 +1033,10 @@ end
 Equal(lateDivider:GetAlpha(), 1, "Disabling restores divider alpha")
 Equal(MainActionBar.ActionBarPageNumber:GetParent(), MainActionBar)
 Equal(MicroMenu:GetParent(), MicroMenuContainer)
+AssertSelection(MicroMenuContainer.Selection, MicroMenuContainer)
+for _, bar in ipairs({ MainActionBar, MultiBarBottomLeft, MultiBarBottomRight }) do
+    AssertSelection(bar.Selection, bar)
+end
 Equal(BagsBar:GetAlpha(), 1)
 for _, bar in ipairs({ MainStatusTrackingBarContainer, SecondaryStatusTrackingBarContainer }) do
     Equal(bar:GetWidth(), 1000, "Native status width restored")
@@ -1014,6 +1095,20 @@ regen.OnEvent(regen, "PLAYER_REGEN_ENABLED")
 Flush()
 AssertCustomShape()
 Equal(ErzbaroneUI.MainBar.PendingUpdate, false)
+ErzbaroneUISettings.compactMainBar = false
+ErzbaroneUI.MainBar:Update()
+
+-- A late bag bar moves the menu next to it after temporarily using the previous placement.
+local lateBags = BagsBar
+BagsBar = nil
+ErzbaroneUISettings.compactMainBar = true
+ErzbaroneUI.MainBar:Update()
+Equal(select(2, MicroMenu:GetParent():GetPoint(1)), UIParent)
+assert(messages[#messages]:find("could not find the Forever bag bar", 1, true))
+BagsBar = lateBags
+ErzbaroneUI.MainBar:Initialize()
+Flush()
+Equal(select(2, MicroMenu:GetParent():GetPoint(1)), BagsBar, "Menu follows bags after they load")
 ErzbaroneUISettings.compactMainBar = false
 ErzbaroneUI.MainBar:Update()
 

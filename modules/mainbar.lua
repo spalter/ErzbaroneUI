@@ -17,6 +17,7 @@ local updating = false
 local originalAlpha
 local originalParent
 local originalMenuPoints
+local originalMenuSelectionPoints
 local currentAlpha = 1
 local currentBagsAlpha = 1
 local warnedMissingMenu = false
@@ -26,6 +27,7 @@ local originalBagsShown
 local originalBagsScale
 local originalBagsPoints
 local warnedMissingBags = false
+local warnedSelection = false
 
 --- Copies a frame's anchor points so they can be restored after relayout.
 local function GetPoints(frame)
@@ -171,6 +173,8 @@ function ErzbaroneUI.MainBar:Update()
         return
     end
 
+    UpdateBags()
+
     if ErzbaroneUISettings.compactMainBar then
         if not applied then
             originalAlpha = MicroMenu:GetAlpha()
@@ -182,14 +186,27 @@ function ErzbaroneUI.MainBar:Update()
         end
 
         menuAnchor:ClearAllPoints()
-        local cap = MainActionBar.EndCaps.LeftEndCap
-        local capLeft = cap:GetLeft() * cap:GetEffectiveScale() / UIParent:GetEffectiveScale()
-        menuAnchor:SetPoint("BOTTOMRIGHT", UIParent, "BOTTOMLEFT", capLeft - MENU_GAP, CORNER_Y)
+        if bagsApplied then
+            menuAnchor:SetPoint("BOTTOMRIGHT", BagsBar, "BOTTOMLEFT", -MENU_GAP, 0)
+        else
+            local cap = MainActionBar.EndCaps.LeftEndCap
+            local capLeft = cap:GetLeft() * cap:GetEffectiveScale() / UIParent:GetEffectiveScale()
+            menuAnchor:SetPoint("BOTTOMRIGHT", UIParent, "BOTTOMLEFT", capLeft - MENU_GAP, CORNER_Y)
+        end
         MicroMenu:SetParent(menuAnchor)
         MicroMenu:ClearAllPoints()
         MicroMenu:SetPoint("BOTTOMLEFT", menuAnchor, "BOTTOMLEFT", 0, 0)
         local scale = MicroMenu:GetScale()
         menuAnchor:SetSize(MicroMenu:GetWidth() * scale, MicroMenu:GetHeight() * scale)
+        if MicroMenuContainer.Selection then
+            if not originalMenuSelectionPoints then
+                originalMenuSelectionPoints = GetPoints(MicroMenuContainer.Selection)
+            end
+            if not ErzbaroneUI.Utils:AlignSelection(MicroMenuContainer, menuAnchor) and not warnedSelection then
+                warnedSelection = true
+                print("ErzbaroneUI: Menu Edit Mode selection is not ready. Its position will be retried on the next layout update.")
+            end
+        end
         updater:SetScript("OnUpdate", OnUpdate)
     elseif applied then
         applied = false
@@ -197,9 +214,12 @@ function ErzbaroneUI.MainBar:Update()
         MicroMenu:SetAlpha(originalAlpha)
         MicroMenu:SetParent(originalParent)
         RestorePoints(MicroMenu, originalMenuPoints)
+        if originalMenuSelectionPoints then
+            RestorePoints(MicroMenuContainer.Selection, originalMenuSelectionPoints)
+            originalMenuSelectionPoints = nil
+        end
     end
 
-    UpdateBags()
     updating = false
     ErzbaroneUI.Chat:UpdatePosition()
 end
@@ -232,6 +252,10 @@ function ErzbaroneUI.MainBar:Initialize()
             end
         end
         hooksecurefunc(MicroMenu, "Layout", Reapply)
+        hooksecurefunc(MicroMenuContainer, "ApplySystemAnchor", Reapply)
+        hooksecurefunc(MicroMenuContainer, "AnchorSelectionFrame", Reapply)
+        hooksecurefunc(MicroMenuContainer, MicroMenuContainer.SetPointBase and "SetPointBase" or "SetPoint", Reapply)
+        MicroMenuContainer:HookScript("OnSizeChanged", Reapply)
     end
 
     if BagsBar and not self.BagsHooked then

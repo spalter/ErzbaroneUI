@@ -155,7 +155,7 @@ local SECTIONS = {
         title = "Action Bars",
         settings = {
             { "compactMainBar", "Improved Layout (Experimental)",
-                "Disabled by default. Uses custom secure action bars and arranges the status bars, menu and bags at runtime. Does not create, select or save Edit Mode profiles, or change chat, buffs or unit-frame settings. Disabling restores the native bars. Changes wait until combat ends.",
+                "Disabled by default. Uses custom secure action bars, arranges the status bars and places the menu next to the bags at runtime. Does not create, select or save Edit Mode profiles, or change chat, buffs or unit-frame settings. Disabling restores the native bars. Changes wait until combat ends.",
                 function() ErzbaroneUI.MainBar:Update() end },
             { "castCount", "Show Cast Count",
                 "Shows how often each mana spell can be cast with your current mana in the bottom left corner of its action button.",
