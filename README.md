@@ -41,6 +41,7 @@ Actual combat protection still needs testing in the Forever client.
 
 ![ErzbaroneUI (UI)](docs/full.jpg)
 ![ErzbaroneUI (UI)](docs/settings.jpg)
+![ErzbaroneUI (UI)](docs/actionbars.jpg)
 
 ## Credits
 
