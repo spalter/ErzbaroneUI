@@ -259,6 +259,7 @@ local function CreateSettingDropdown(parent, key, label, tooltip, onChange, getO
     end)
 
     if tooltip then
+        --- Displays this setting's label and explanatory tooltip.
         local function ShowTooltip(owner)
             GameTooltip:SetOwner(owner, "ANCHOR_RIGHT")
             GameTooltip:SetText(label, 1, 1, 1)

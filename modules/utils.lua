@@ -28,7 +28,7 @@ function ErzbaroneUI.Utils:ForEachActionButton(callback)
     end
 end
 
--- function to auto sell grey items
+--- Sells poor-quality items from every bag when automatic selling is enabled.
 function ErzbaroneUI.Utils:AutoSellGreyItems()
     if not ErzbaroneUISettings.autoSellGreyItems then
         return
@@ -44,7 +44,7 @@ function ErzbaroneUI.Utils:AutoSellGreyItems()
     end
 end
 
--- function to auto repair items
+--- Repairs all equipped items when automatic repair is enabled and available.
 function ErzbaroneUI.Utils:AutoRepair()
     if not ErzbaroneUISettings.autoRepair then
         return

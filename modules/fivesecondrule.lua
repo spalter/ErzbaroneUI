@@ -67,6 +67,7 @@ function ErzbaroneUI.CreatePowerBarSpark(name)
         frame:SetValue(elapsed)
     end)
 
+    --- Starts the spark animation for the specified duration.
     function track:Start(duration)
         self.startTime = GetTime()
         self.duration = duration
@@ -75,6 +76,7 @@ function ErzbaroneUI.CreatePowerBarSpark(name)
         self:Show()
     end
 
+    --- Hides the spark animation.
     function track:Stop()
         self:Hide()
     end

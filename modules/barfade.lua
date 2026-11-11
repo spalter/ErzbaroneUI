@@ -13,6 +13,7 @@ local HIDDEN_ALPHA = 0
 local updater = CreateFrame("Frame")
 local currentAlpha = 1
 
+--- Returns the right-side action bars that currently exist and are shown.
 local function GetBars()
     local bars = {}
     for _, name in ipairs(BAR_NAMES) do
@@ -24,6 +25,7 @@ local function GetBars()
     return bars
 end
 
+--- Sets the alpha of both right-side action bars.
 local function SetBarsAlpha(alpha)
     for _, name in ipairs(BAR_NAMES) do
         local bar = _G[name]
@@ -52,6 +54,7 @@ local function ShouldShow(bars)
     return false
 end
 
+--- Fades the right-side bars toward their hover-dependent target alpha.
 local function OnUpdate(_, elapsed)
     local bars = GetBars()
     if #bars == 0 then
@@ -83,6 +86,7 @@ function ErzbaroneUI.BarFade:Update()
     end
 end
 
+--- Applies the current right-bar fade setting.
 function ErzbaroneUI.BarFade:Initialize()
     self:Update()
 end

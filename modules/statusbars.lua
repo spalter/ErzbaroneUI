@@ -24,6 +24,7 @@ local originals = {}
 -- Health bars whose Blizzard atlas was desaturated to show a class color.
 local tinted = {}
 
+--- Returns the currently configured unit-frame bar texture path.
 local function GetTexturePath()
     return ErzbaroneUI.StatusBars:GetTexturePath(ErzbaroneUISettings and ErzbaroneUISettings.unitFrameTexture)
 end
@@ -101,6 +102,7 @@ local function GetUnitHealthColor(bar)
     return nil
 end
 
+--- Applies the selected texture and configured health color to a health bar.
 local function ApplyHealth(bar)
     if not bar then
         return
@@ -131,6 +133,7 @@ local function ApplyHealth(bar)
     end
 end
 
+--- Applies the selected texture and power-type color to a unit power bar.
 local function ApplyPower(bar)
     local path = GetTexturePath()
     if not bar or not path or not bar.unit then
@@ -155,6 +158,7 @@ local function ApplyPower(bar)
     end
 end
 
+--- Updates the health and power bars of a managed unit frame.
 local function ApplyFrame(frame)
     if not IsManagedFrame(frame) then
         return
@@ -163,6 +167,7 @@ local function ApplyFrame(frame)
     ApplyPower(frame.manabar)
 end
 
+--- Collects the supported player, pet, target, focus and party frames.
 local function GetManagedFrames()
     local frames = { PlayerFrame, PetFrame, TargetFrame, FocusFrame }
     if TargetFrame and TargetFrame.totFrame then
@@ -179,6 +184,7 @@ local function GetManagedFrames()
     return frames
 end
 
+--- Restores each tracked bar's original atlas and color.
 local function RestoreAll()
     for bar, original in pairs(originals) do
         bar:SetStatusBarTexture(original.atlas)
@@ -197,6 +203,7 @@ function ErzbaroneUI.StatusBars:Update()
     end
 end
 
+--- Hooks Blizzard unit-frame updates and applies the configured bar style.
 function ErzbaroneUI.StatusBars:Initialize()
     if not self.Initialized then
         self.Initialized = true

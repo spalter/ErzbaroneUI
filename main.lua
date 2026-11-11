@@ -13,12 +13,14 @@ for _, event in ipairs(eventHooks) do
     frame:RegisterEvent(event)
 end
 
+-- Initializes modules on world entry and handles addon-load and merchant events.
 frame:SetScript("OnEvent", function(_, event, name)
     if event == "ADDON_LOADED" and name == "ErzbaroneUI" then
         ErzbaroneUI.Config:Initialize()
         ErzbaroneUI.Effects:UpdateVignette()
 
         SLASH_ERZBARONEUI1 = "/eui"
+        -- Opens the addon's settings from the /eui slash command.
         SlashCmdList["ERZBARONEUI"] = function()
             ErzbaroneUI.Config:OpenSettings()
         end

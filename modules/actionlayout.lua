@@ -25,6 +25,7 @@ local resizingStatusBar = false
 local positioningFrame = false
 local lastError
 
+--- Prints a layout error only when its message changes and reports failure.
 local function ReportError(message)
     if lastError ~= message then
         lastError = message
@@ -33,18 +34,22 @@ local function ReportError(message)
     return false
 end
 
+--- Returns the three native action bars used by the compact layout.
 local function GetBars()
     return { MainActionBar, MultiBarBottomLeft, MultiBarBottomRight }
 end
 
+--- Returns the primary and secondary status tracking bars.
 local function GetStatusBars()
     return { SecondaryStatusTrackingBarContainer, MainStatusTrackingBarContainer }
 end
 
+--- Returns the stance, pet, possession and vehicle-exit bars.
 local function GetAuxiliaryBars()
     return { StanceBar, PetActionBar, PossessActionBar, MainMenuBarVehicleLeaveButton }
 end
 
+--- Copies every anchor point from a frame so its layout can be restored.
 local function GetPoints(frame)
     local points = {}
     for index = 1, frame:GetNumPoints() do
@@ -53,6 +58,7 @@ local function GetPoints(frame)
     return points
 end
 
+--- Replaces a frame's anchor points with a previously saved set.
 local function SetPoints(frame, points)
     local clear = frame.ClearAllPointsBase or frame.ClearAllPoints
     local setPoint = frame.SetPointBase or frame.SetPoint
@@ -62,6 +68,7 @@ local function SetPoints(frame, points)
     end
 end
 
+--- Calculates the scaled width and height of an action-bar row.
 local function GetRowSize(bar, columns)
     local button = bar.actionButtons[1].container
     local scale = bar:GetScale()
@@ -71,6 +78,7 @@ local function GetRowSize(bar, columns)
     return (columns * width + (columns - 1) * padding) * scale, height * scale
 end
 
+--- Resizes a status bar and refreshes its containers, dividers and tick.
 local function ResizeStatusBar(bar, width)
     if resizingStatusBar then
         return
@@ -84,6 +92,7 @@ local function ResizeStatusBar(bar, width)
     resizingStatusBar = false
 end
 
+--- Hides native action-bar dividers while retaining their original alpha.
 local function HideNativeDividers()
     for _, pool in pairs({ MainActionBar.HorizontalDividersPool, MainActionBar.VerticalDividersPool }) do
         for divider in pool:EnumerateActive() do
@@ -95,6 +104,7 @@ local function HideNativeDividers()
     end
 end
 
+--- Keeps an already-customized status bar at its calculated width.
 local function MaintainStatusBarSize(bar)
     local state = originalStatusBars[bar]
     if resizingStatusBar or not customBarsApplied or not state then
@@ -107,6 +117,7 @@ local function MaintainStatusBarSize(bar)
     ResizeStatusBar(bar, state.customWidth)
 end
 
+--- Restores a custom anchor unless combat prevents moving a protected frame.
 local function MaintainPosition(bar, state)
     if positioningFrame or not customBarsApplied or not state or not state.customPoints then
         return
@@ -121,22 +132,27 @@ local function MaintainPosition(bar, state)
     positioningFrame = false
 end
 
+--- Reapplies the compact-layout anchor for a status bar.
 local function MaintainStatusBarPosition(bar)
     MaintainPosition(bar, originalStatusBars[bar])
 end
 
+--- Reapplies the compact-layout anchor for an auxiliary action bar.
 local function MaintainAuxiliaryBarPosition(bar)
     MaintainPosition(bar, originalAuxiliaryBars[bar])
 end
 
+--- Reapplies the compact-layout anchor for the player cast bar.
 local function MaintainCastBarPosition(bar)
     MaintainPosition(bar, originalCastBar)
 end
 
+--- Reapplies the compact-layout anchor for a main action-bar end cap.
 local function MaintainEndCapPosition(cap)
     MaintainPosition(cap, originalEndCaps[cap])
 end
 
+--- Restores the player cast bar's original anchors.
 local function RestoreCastBar()
     if originalCastBar then
         local points = originalCastBar.points
@@ -145,6 +161,7 @@ local function RestoreCastBar()
     end
 end
 
+--- Places the player cast bar above the compact action and status bars.
 local function ApplyCastBar(top)
     if not MultiBarBottomLeft:IsShown() and not MultiBarBottomRight:IsShown() then
         RestoreCastBar()
@@ -160,6 +177,7 @@ local function ApplyCastBar(top)
     MaintainCastBarPosition(PlayerCastingBarFrame)
 end
 
+--- Shows the slot art and hides the background for a customized button.
 local function ApplySlotArt(button)
     if customBarsApplied and originalSlotArt[button] then
         button.SlotArt:Show()
@@ -167,6 +185,7 @@ local function ApplySlotArt(button)
     end
 end
 
+--- Returns custom action bars, button containers and related art to native state.
 local function RestoreCustomBars()
     if not customBarsApplied then
         return
@@ -203,6 +222,7 @@ local function RestoreCustomBars()
     customBarsApplied = false
 end
 
+--- Restores all action, status, auxiliary and cast bar visuals and anchors.
 local function RestoreVisuals()
     RestoreCustomBars()
     RestoreCastBar()
@@ -224,6 +244,7 @@ local function RestoreVisuals()
     originalStatusBars = {}
 end
 
+--- Creates secure custom bar frames that reuse Blizzard's action buttons.
 local function CreateCustomBars()
     if #customBars > 0 then
         return true
@@ -254,6 +275,7 @@ local function CreateCustomBars()
     return true
 end
 
+--- Reparents and arranges native action-button containers in the compact layout.
 local function ApplyCustomBars(width, rowY, left, bottom, leftWidth, mainHeight, rightHeight)
     if not CreateCustomBars() then
         return false
@@ -370,6 +392,7 @@ local function ApplyCustomBars(width, rowY, left, bottom, leftWidth, mainHeight,
     return true
 end
 
+--- Sizes and stacks status bars below the action bars, returning their top edge.
 local function ApplyStatusBars(width, left, bottom, rowY)
     local top = bottom
     for _, bar in ipairs(GetStatusBars()) do
@@ -394,6 +417,7 @@ local function ApplyStatusBars(width, left, bottom, rowY)
     return top
 end
 
+--- Pins auxiliary buttons to a secure anchor independent of native bar movement.
 local function AnchorAuxiliaryButtons(bar, state)
     if not bar.actionButtons then
         return
@@ -429,6 +453,7 @@ local function AnchorAuxiliaryButtons(bar, state)
     end
 end
 
+--- Stacks auxiliary bars above the action bars and anchors their buttons.
 local function ApplyAuxiliaryBars(left, top)
     -- Pre-anchor hidden controls above the visible stack so they can appear in combat.
     for _, shown in ipairs({ true, false }) do
@@ -453,6 +478,7 @@ local function ApplyAuxiliaryBars(left, top)
     end
 end
 
+--- Calculates the compact layout's dimensions and offsets from native bar sizes.
 local function GetBarGeometry()
     local mainWidth, mainHeight = GetRowSize(MainActionBar, 12)
     local bar2Width = GetRowSize(MultiBarBottomLeft, 12)
@@ -480,6 +506,7 @@ local function GetBarGeometry()
     return width, rowY + GAP, left, bottom, leftWidth, mainHeight, rightHeight
 end
 
+--- Applies the compact action-bar layout or restores native visuals when disabled.
 function ErzbaroneUI.ActionLayout:Update()
     if InCombatLockdown() then
         ErzbaroneUI.MainBar.PendingUpdate = true
@@ -549,7 +576,9 @@ function ErzbaroneUI.ActionLayout:Update()
     return true
 end
 
+--- Hooks bar layout and position changes so the compact arrangement stays applied.
 function ErzbaroneUI.ActionLayout:Initialize()
+    -- Requests a fresh layout after Blizzard changes a hooked frame.
     local function Reapply()
         if ErzbaroneUISettings.compactMainBar or customBarsApplied then
             ErzbaroneUI.MainBar:RequestUpdate()

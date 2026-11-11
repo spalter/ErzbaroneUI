@@ -17,6 +17,7 @@ local CAST_BAR_NAMES = {
 
 local hookedBars = {}
 
+--- Returns the configured cast-bar texture path, or nil for Blizzard's default.
 local function GetTexturePath()
     return ErzbaroneUI.StatusBars:GetTexturePath(ErzbaroneUISettings and ErzbaroneUISettings.castBarTexture)
 end
@@ -45,6 +46,7 @@ local function ApplyTexture(bar, isFull)
     bar:SetStatusBarColor(color:GetRGB())
 end
 
+--- Hooks each available cast bar so its fill texture can use the configured style.
 local function HookBars()
     for _, name in ipairs(CAST_BAR_NAMES) do
         local bar = _G[name]
@@ -60,6 +62,7 @@ function ErzbaroneUI.CastBars:Update()
     HookBars()
 end
 
+--- Installs cast-bar texture hooks.
 function ErzbaroneUI.CastBars:Initialize()
     HookBars()
 end

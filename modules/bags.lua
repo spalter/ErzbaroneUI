@@ -4,6 +4,7 @@ end
 
 ErzbaroneUI.Bags = {}
 
+--- Returns the individual bag windows and the combined-bags window when present.
 local function GetBagFrames()
     local frames = {}
     if ContainerFrameContainer and ContainerFrameContainer.ContainerFrames then
@@ -28,6 +29,7 @@ function ErzbaroneUI.Bags:Update()
     end
 end
 
+--- Applies the current bag-title visibility setting.
 function ErzbaroneUI.Bags:Initialize()
     self:Update()
 end

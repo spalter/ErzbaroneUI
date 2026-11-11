@@ -27,6 +27,7 @@ local originalBagsScale
 local originalBagsPoints
 local warnedMissingBags = false
 
+--- Copies a frame's anchor points so they can be restored after relayout.
 local function GetPoints(frame)
     local points = {}
     for index = 1, frame:GetNumPoints() do
@@ -35,6 +36,7 @@ local function GetPoints(frame)
     return points
 end
 
+--- Replaces a frame's current anchors with a saved set.
 local function RestorePoints(frame, points)
     local clear = frame.ClearAllPointsBase or frame.ClearAllPoints
     local setPoint = frame.SetPointBase or frame.SetPoint
@@ -44,6 +46,7 @@ local function RestorePoints(frame, points)
     end
 end
 
+--- Moves the bag bar to the screen corner and restores it when compact mode ends.
 local function UpdateBags()
     if ErzbaroneUISettings.compactMainBar then
         if not BagsBar or not BagsBar.ApplySystemAnchor then
@@ -83,10 +86,12 @@ local function UpdateBags()
     end
 end
 
+--- Returns whether Blizzard's Edit Mode is currently open.
 local function IsEditModeActive()
     return EditModeManagerFrame and EditModeManagerFrame:IsEditModeActive()
 end
 
+--- Checks whether a frame or any of its visible children is under the cursor.
 local function IsHovered(frame)
     if frame:IsMouseOver() then
         return true
@@ -99,6 +104,7 @@ local function IsHovered(frame)
     return false
 end
 
+--- Moves a frame's alpha toward visible or hidden according to hover and Edit Mode.
 local function Fade(frame, alpha, hovered, elapsed)
     local target = (hovered or IsEditModeActive()) and 1 or 0
     if alpha < target then
@@ -110,6 +116,7 @@ local function Fade(frame, alpha, hovered, elapsed)
     return alpha
 end
 
+--- Updates the micro menu and bag-bar fades each frame.
 local function OnUpdate(_, elapsed)
     currentAlpha = Fade(MicroMenu, currentAlpha, menuAnchor:IsMouseOver() or IsHovered(MicroMenu), elapsed)
     if bagsApplied then
@@ -117,10 +124,12 @@ local function OnUpdate(_, elapsed)
     end
 end
 
+--- Returns the extra bottom inset the chat layout should reserve.
 function ErzbaroneUI.MainBar:GetChatBottomInset()
     return 0
 end
 
+--- Queues one layout refresh for the next timer tick.
 function ErzbaroneUI.MainBar:RequestUpdate()
     if updating or updateQueued then
         return
@@ -132,6 +141,7 @@ function ErzbaroneUI.MainBar:RequestUpdate()
     end)
 end
 
+--- Applies or restores the compact main-bar layout when it is safe to do so.
 function ErzbaroneUI.MainBar:Update()
     if updating then
         return
@@ -194,6 +204,7 @@ function ErzbaroneUI.MainBar:Update()
     ErzbaroneUI.Chat:UpdatePosition()
 end
 
+--- Hooks load, combat and bar-layout events, then initializes the main-bar layout.
 function ErzbaroneUI.MainBar:Initialize()
     if not self.Initialized then
         self.Initialized = true
@@ -201,6 +212,7 @@ function ErzbaroneUI.MainBar:Initialize()
         local eventFrame = CreateFrame("Frame")
         eventFrame:RegisterEvent("ADDON_LOADED")
         eventFrame:RegisterEvent("PLAYER_REGEN_ENABLED")
+        -- Reinitializes after required Blizzard frames load and retries deferred combat updates.
         eventFrame:SetScript("OnEvent", function(_, event, name)
             if event == "ADDON_LOADED" and (name == "Blizzard_MicroMenu" or name == "Blizzard_MainMenuBarBagButtons"
                 or name == "Blizzard_ActionBar" or name == "Blizzard_StatusTrackingBar") then
@@ -213,6 +225,7 @@ function ErzbaroneUI.MainBar:Initialize()
 
     if MicroMenuContainer and MicroMenu and not self.Hooked then
         self.Hooked = true
+        -- Requests relayout after the micro menu changes its native placement.
         local function Reapply()
             if ErzbaroneUISettings.compactMainBar or applied then
                 self:RequestUpdate()
@@ -223,6 +236,7 @@ function ErzbaroneUI.MainBar:Initialize()
 
     if BagsBar and not self.BagsHooked then
         self.BagsHooked = true
+        -- Requests relayout after the bag bar changes its native placement.
         local function Reapply()
             if ErzbaroneUISettings.compactMainBar or bagsApplied then
                 self:RequestUpdate()

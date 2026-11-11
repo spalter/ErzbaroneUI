@@ -26,10 +26,12 @@ local originalStates = {}
 local applied = false
 local zoneLabel
 
+--- Returns whether compact minimap mode is enabled.
 local function IsEnabled()
     return ErzbaroneUISettings and ErzbaroneUISettings.compactMinimap
 end
 
+--- Returns the current Edit Mode setting for the minimap header position.
 local function IsHeaderUnderneath()
     if MinimapCluster.GetSettingValueBool and Enum.EditModeMinimapSetting then
         return MinimapCluster:GetSettingValueBool(Enum.EditModeMinimapSetting.HeaderUnderneath) and true or false
@@ -53,6 +55,7 @@ local function SaveState(frame)
     }
 end
 
+--- Restores the saved parent, frame level and anchors of every moved minimap frame.
 local function RestoreStates()
     for frame, state in pairs(originalStates) do
         frame:SetParent(state.parent)
@@ -80,6 +83,7 @@ local function PlaceOnRing(frame, angle)
     frame:SetPoint("CENTER", Minimap, "CENTER", BUTTON_RADIUS * math.cos(radians), BUTTON_RADIUS * math.sin(radians))
 end
 
+--- Moves the server clock into the minimap container below the map.
 local function PlaceClock()
     local clock = TimeManagerClockButton
     if not clock then
@@ -94,6 +98,7 @@ local function PlaceClock()
     clock:SetPoint("BOTTOM", Minimap, "BOTTOM", 0, 8)
 end
 
+--- Repositions the minimap container to account for the removed header.
 local function PlaceMinimap()
     local container = MinimapCluster.MinimapContainer
     local scale = container:GetScale()
@@ -171,16 +176,19 @@ local FADE_SPEED = 6 -- alpha per second
 local fader = CreateFrame("Frame")
 local fadeAlpha = 1
 
+--- Returns the tracking, calendar and addon-compartment buttons that can fade.
 local function GetFadeButtons()
     return { MinimapCluster.Tracking, GameTimeFrame, AddonCompartmentFrame }
 end
 
+--- Sets the alpha of each minimap button controlled by the fade feature.
 local function SetButtonsAlpha(alpha)
     for _, button in pairs(GetFadeButtons()) do
         button:SetAlpha(alpha)
     end
 end
 
+--- Returns whether a button currently has its dropdown menu open.
 local function IsMenuOpen(button)
     return button and button.IsMenuOpen and button:IsMenuOpen()
 end
@@ -204,6 +212,7 @@ local function ShouldShowButtons()
     return false
 end
 
+--- Updates minimap button alpha while preserving visibility for pending invites.
 local function OnFadeUpdate(_, elapsed)
     -- Pending calendar invites should never be hidden
     local hasInvites = GameTimeCalendarInvitesTexture and GameTimeCalendarInvitesTexture:IsShown()
@@ -225,6 +234,7 @@ local function OnFadeUpdate(_, elapsed)
     end
 end
 
+--- Resets button visibility and enables or disables the minimap fade updater.
 local function UpdateButtonFade()
     fadeAlpha = 1
     SetButtonsAlpha(1)
@@ -235,6 +245,7 @@ local function UpdateButtonFade()
     end
 end
 
+--- Applies the compact minimap and button-fade settings.
 function ErzbaroneUI.Minimap:Update()
     if IsEnabled() then
         Apply()
@@ -251,6 +262,7 @@ local function Reapply()
     end
 end
 
+--- Hooks minimap layout changes and initializes deferred updates.
 function ErzbaroneUI.Minimap:Initialize()
     if not MinimapCluster or not MinimapCluster.MinimapContainer then
         return

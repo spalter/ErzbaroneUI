@@ -68,6 +68,7 @@ local CORNER_OFFSET_Y = 34
 
 local movedToCorner = false
 
+--- Returns the chat's horizontal and bottom offsets, accounting for the main bar.
 function ErzbaroneUI.Chat:GetCornerOffsets()
     local x = ErzbaroneUISettings.hideChatButtons and CORNER_OFFSET_X or CORNER_OFFSET_X_WITH_BUTTONS
     local bottomInset = ErzbaroneUI.MainBar and ErzbaroneUI.MainBar:GetChatBottomInset() or 0
@@ -75,6 +76,7 @@ function ErzbaroneUI.Chat:GetCornerOffsets()
 end
 
 -- Edit Mode replaces SetPoint/ClearAllPoints with versions that notify Edit Mode; the base versions only move the frame.
+--- Sets a chat anchor through base methods to avoid notifying Edit Mode.
 local function SetChatPoint(chatFrame, point, relativeTo, relativePoint, x, y)
     local clear = chatFrame.ClearAllPointsBase or chatFrame.ClearAllPoints
     local setPoint = chatFrame.SetPointBase or chatFrame.SetPoint
@@ -138,6 +140,7 @@ function ErzbaroneUI.Chat:UpdateTabs()
 end
 
 --- Applies the setting and catches chat windows and buttons created later on.
+--- Hooks chat tabs and late-loaded buttons, then applies the current chat settings.
 function ErzbaroneUI.Chat:Initialize()
     if not self.Initialized then
         self.Initialized = true

@@ -22,6 +22,7 @@ function ErzbaroneUI.SwingTimer:Start(duration)
     end
 end
 
+--- Stops the active swing spark, if one exists.
 function ErzbaroneUI.SwingTimer:Stop()
     if self.Spark then
         self.Spark:Stop()
@@ -54,6 +55,7 @@ function ErzbaroneUI.SwingTimer:Update()
     end
 end
 
+--- Registers or removes swing events according to the current setting.
 function ErzbaroneUI.SwingTimer:Initialize()
     self:Update()
 end

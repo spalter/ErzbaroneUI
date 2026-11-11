@@ -27,6 +27,7 @@ function ErzbaroneUI.ThreatGlow:Update()
     end
 end
 
+--- Applies the current threat-glow visibility setting.
 function ErzbaroneUI.ThreatGlow:Initialize()
     self:Update()
 end
