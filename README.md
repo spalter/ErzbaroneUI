@@ -5,7 +5,7 @@ A reduced World of Warcraft Forever Interface
 ## Usage
 
 Extract the `ErzbaroneUI` directory from the release zip into the `World of Warcraft\_forever_\Interface\AddOns\` directory.
-To open the configuration, go to Game Menu → Options → AddOns → ErzbaroneUI or type `/eui`.
+To open the configuration, select ErzbaroneUI in the minimap's AddOns menu, go to Game Menu → Options → AddOns → ErzbaroneUI or type `/eui`.
 
 ### Via CurseForge
 
@@ -38,6 +38,8 @@ They reject all Edit Mode profile API calls and writes to native secure button r
 Auxiliary buttons use stable anchors prepared outside combat while their native containers, visibility and click handlers remain unchanged. Grid and stacking changes during combat are applied after combat ends.
 Gryphon anchors are maintained synchronously during native layout updates to avoid briefly reverting to their default positions; tests check this without flushing queued updates.
 Actual combat protection still needs testing in the Forever client.
+
+Run the AddOns menu integration test with `lua tests\config_test.lua`.
 
 ## Screenshots
 

@@ -346,3 +346,7 @@ end
 function ErzbaroneUI.Config:OpenSettings()
     Settings.OpenToCategory(self.Category:GetID())
 end
+
+function ErzbaroneUI_OnAddonCompartmentClick()
+    ErzbaroneUI.Config:OpenSettings()
+end

@@ -4,6 +4,8 @@
 ## Version: 0.0.2
 ## Notes: A World of Warcraft Forever Interface Improvement
 ## SavedVariables: ErzbaroneUISettings
+## IconTexture: Interface\AddOns\ErzbaroneUI\textures\round_icon.blp
+## AddonCompartmentFunc: ErzbaroneUI_OnAddonCompartmentClick
 
 # Modules
 modules\config.lua
