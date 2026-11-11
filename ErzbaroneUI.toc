@@ -1,7 +1,7 @@
 ## Interface: 16001
 ## Title: ErzbaroneUI
 ## Author: spalt_er
-## Version: 0.0.1
+## Version: 0.0.2
 ## Notes: A World of Warcraft Forever Interface Improvement
 ## SavedVariables: ErzbaroneUISettings
 
@@ -16,6 +16,8 @@ modules\threatglow.lua
 modules\castcount.lua
 modules\rangetint.lua
 modules\barfade.lua
+modules\actionlayout.lua
+modules\mainbar.lua
 modules\chat.lua
 modules\minimap.lua
 modules\bags.lua

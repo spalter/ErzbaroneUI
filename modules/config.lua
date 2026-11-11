@@ -12,6 +12,7 @@ local defaults = {
     castCount = true,
     rangeTint = true,
     fadeRightBars = true,
+    compactMainBar = false,
     hideChatButtons = true,
     chatToCorner = true,
     fadeChatTabs = true,
@@ -153,6 +154,9 @@ local SECTIONS = {
         column = 2,
         title = "Action Bars",
         settings = {
+            { "compactMainBar", "Improved Layout (Experimental)",
+                "Disabled by default. Uses custom secure action bars and arranges the status bars, menu and bags at runtime. Does not create, select or save Edit Mode profiles, or change chat, buffs or unit-frame settings. Disabling restores the native bars. Changes wait until combat ends.",
+                function() ErzbaroneUI.MainBar:Update() end },
             { "castCount", "Show Cast Count",
                 "Shows how often each mana spell can be cast with your current mana in the bottom left corner of its action button.",
                 function() ErzbaroneUI.CastCount:Update() end },
@@ -341,4 +345,3 @@ end
 function ErzbaroneUI.Config:OpenSettings()
     Settings.OpenToCategory(self.Category:GetID())
 end
-

@@ -34,6 +34,7 @@ frame:SetScript("OnEvent", function(_, event, name)
         ErzbaroneUI.RangeTint:Initialize()
         ErzbaroneUI.BarFade:Initialize()
         ErzbaroneUI.Chat:Initialize()
+        ErzbaroneUI.MainBar:Initialize()
         ErzbaroneUI.Minimap:Initialize()
         ErzbaroneUI.Bags:Initialize()
     end

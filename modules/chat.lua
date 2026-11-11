@@ -68,6 +68,12 @@ local CORNER_OFFSET_Y = 34
 
 local movedToCorner = false
 
+function ErzbaroneUI.Chat:GetCornerOffsets()
+    local x = ErzbaroneUISettings.hideChatButtons and CORNER_OFFSET_X or CORNER_OFFSET_X_WITH_BUTTONS
+    local bottomInset = ErzbaroneUI.MainBar and ErzbaroneUI.MainBar:GetChatBottomInset() or 0
+    return x, CORNER_OFFSET_Y + bottomInset
+end
+
 -- Edit Mode replaces SetPoint/ClearAllPoints with versions that notify Edit Mode; the base versions only move the frame.
 local function SetChatPoint(chatFrame, point, relativeTo, relativePoint, x, y)
     local clear = chatFrame.ClearAllPointsBase or chatFrame.ClearAllPoints
@@ -86,8 +92,8 @@ function ErzbaroneUI.Chat:UpdatePosition()
     local isDefault = chatFrame:IsInDefaultPosition()
     if ErzbaroneUISettings.chatToCorner and isDefault then
         local scale = chatFrame:GetScale()
-        local x = ErzbaroneUISettings.hideChatButtons and CORNER_OFFSET_X or CORNER_OFFSET_X_WITH_BUTTONS
-        SetChatPoint(chatFrame, "BOTTOMLEFT", UIParent, "BOTTOMLEFT", x / scale, CORNER_OFFSET_Y / scale)
+        local x, y = self:GetCornerOffsets()
+        SetChatPoint(chatFrame, "BOTTOMLEFT", UIParent, "BOTTOMLEFT", x / scale, y / scale)
         movedToCorner = true
     elseif movedToCorner then
         movedToCorner = false
