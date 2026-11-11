@@ -16,6 +16,7 @@ The addon is available on CurseForge too, search for `ErzbaroneUI` or [on their 
 - Auto sell grey items
 - Auto repair
 - Optional vignette effect
+- HDR output toggle and HDR factor slider (1.0–2.0), using the game's console variables; HDR output is off by default and requires a supported monitor and render settings
 - Five second rule timer on the player mana bar
 - Optional swing timer spark on the player power bar for melee and ranged fighters
 - Textured health and power bars on the unit frames (classic, smooth, skills or a custom `textures\statusbar` file), also selectable for the cast bars

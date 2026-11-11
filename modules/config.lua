@@ -189,11 +189,23 @@ local SECTIONS = {
                 function() ErzbaroneUI.Minimap:Update() end },
         },
     },
+    {
+        column = 2,
+        title = "HDR",
+        settings = {
+            { "HDROutput", "Enable HDR Output",
+                "Off by default in WoW. Enables HDR output when supported by the monitor and render settings. The addon cannot detect whether HDR is available on your system.",
+                kind = "hdrCheckbox" },
+            { "HDRFactor", "HDR Factor",
+                "Adjusts how far HDR lighting can exceed SDR lighting. The slider covers 1.0 to 2.0; the game also clamps brightness to the monitor's peak.",
+                kind = "hdrSlider" },
+        },
+    },
 }
 
 --- Creates a compact checkbox bound to a boolean entry in ErzbaroneUISettings.
 --- The optional onChange callback is invoked with the new value after the setting was updated.
-local function CreateSettingCheckbox(parent, key, label, tooltip, onChange)
+local function CreateSettingCheckbox(parent, key, label, tooltip, onChange, readValue, writeValue)
     local checkbox = CreateFrame("CheckButton", "ErzbaroneUISetting_" .. key, parent, "UICheckButtonTemplate")
     checkbox:SetSize(ROW_HEIGHT, ROW_HEIGHT)
     checkbox:SetHitRectInsets(0, -(COLUMN_WIDTH - ROW_HEIGHT), 0, 0)
@@ -207,13 +219,36 @@ local function CreateSettingCheckbox(parent, key, label, tooltip, onChange)
     text:SetWordWrap(false)
     text:SetText(label)
 
-    checkbox:SetScript("OnShow", function(self)
-        self:SetChecked(ErzbaroneUISettings[key])
-    end)
+    local function Refresh(self)
+        local value
+        if readValue then
+            value = readValue()
+        else
+            value = ErzbaroneUISettings[key]
+        end
+        self:SetChecked(value)
+        if readValue then
+            if value == nil then
+                text:SetText(label .. " (unavailable)")
+                self:Disable()
+            else
+                text:SetText(label)
+                self:Enable()
+            end
+        end
+    end
+    checkbox.Refresh = Refresh
+    checkbox:SetScript("OnShow", Refresh)
     checkbox:SetScript("OnClick", function(self)
-        ErzbaroneUISettings[key] = self:GetChecked() and true or false
-        if onChange then
-            onChange(ErzbaroneUISettings[key])
+        local value = self:GetChecked() and true or false
+        if writeValue then
+            writeValue(value)
+            Refresh(self)
+        else
+            ErzbaroneUISettings[key] = value
+            if onChange then
+                onChange(value)
+            end
         end
     end)
 
@@ -227,8 +262,78 @@ local function CreateSettingCheckbox(parent, key, label, tooltip, onChange)
         checkbox:SetScript("OnLeave", GameTooltip_Hide)
     end
 
-    checkbox:SetChecked(ErzbaroneUISettings[key])
+    Refresh(checkbox)
     return checkbox
+end
+
+local function SetHDRCVar(name, value)
+    if not C_CVar.SetCVar(name, value) then
+        print("ErzbaroneUI: Could not change " .. name .. ".")
+    end
+end
+
+local function ReadHDROutput()
+    local value = C_CVar.GetCVar("HDROutput")
+    if value == "1" then return true end
+    if value == "0" then return false end
+    return nil
+end
+
+--- Creates a slider that displays the actual CVar even when it is outside the slider range.
+local function CreateHDRSlider(parent, label, tooltip)
+    local row = CreateFrame("Frame", nil, parent)
+    row:SetSize(COLUMN_WIDTH, 44)
+    local text = row:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
+    text:SetPoint("TOPLEFT", row, "TOPLEFT", 4, 0)
+    text:SetText(label)
+    local valueText = row:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
+    valueText:SetPoint("TOPRIGHT", row, "TOPRIGHT", -4, 0)
+
+    local slider = CreateFrame("Slider", "ErzbaroneUIHDRFactorSlider", row, "UISliderTemplate")
+    slider:SetSize(COLUMN_WIDTH - 18, 17)
+    slider:SetPoint("BOTTOMLEFT", row, "BOTTOMLEFT", 9, 2)
+    slider:SetMinMaxValues(1, 2)
+    slider:SetValueStep(0.01)
+    slider:SetObeyStepOnDrag(true)
+
+    local refreshing = false
+    local function Refresh()
+        local value = tonumber(C_CVar.GetCVar("HDRFactor"))
+        if not value then
+            slider:Disable()
+            valueText:SetText("Unavailable")
+            return
+        end
+        slider:Enable()
+        valueText:SetText(string.format("%g%s", value, (value < 1 or value > 2) and " (outside 1-2)" or ""))
+        refreshing = true
+        slider:SetValue(math.max(1, math.min(2, value)))
+        refreshing = false
+    end
+    row.Refresh = Refresh
+    row:SetScript("OnShow", Refresh)
+    slider:SetScript("OnValueChanged", function(_, value)
+        if not refreshing then
+            SetHDRCVar("HDRFactor", string.format("%.2f", value))
+            Refresh()
+        end
+    end)
+    slider:SetScript("OnMouseUp", function(self)
+        local value = tonumber(C_CVar.GetCVar("HDRFactor"))
+        if value and (value < 1 or value > 2) then
+            SetHDRCVar("HDRFactor", string.format("%.2f", self:GetValue()))
+            Refresh()
+        end
+    end)
+    slider:SetScript("OnEnter", function(self)
+        GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+        GameTooltip:SetText(label, 1, 1, 1)
+        GameTooltip:AddLine(tooltip, nil, nil, nil, true)
+        GameTooltip:Show()
+    end)
+    slider:SetScript("OnLeave", GameTooltip_Hide)
+    Refresh()
+    return row
 end
 
 --- Creates a labeled dropdown bound to a string entry in ErzbaroneUISettings.
@@ -313,6 +418,7 @@ function ErzbaroneUI.Config:RegisterSettingsPanel()
         { frame = subtitle, x = 0 },
         { frame = subtitle, x = COLUMN_WIDTH + COLUMN_GAP },
     }
+    local hdrControls = {}
 
     for _, section in ipairs(SECTIONS) do
         local column = columnAnchors[section.column]
@@ -323,7 +429,14 @@ function ErzbaroneUI.Config:RegisterSettingsPanel()
         local previous = anchor
         for index, setting in ipairs(section.settings) do
             local control
-            if setting[5] then
+            if setting.kind == "hdrCheckbox" then
+                control = CreateSettingCheckbox(panel, setting[1], setting[2], setting[3], nil,
+                    ReadHDROutput, function(value) SetHDRCVar("HDROutput", value and "1" or "0") end)
+                hdrControls.hdroutput = control
+            elseif setting.kind == "hdrSlider" then
+                control = CreateHDRSlider(panel, setting[2], setting[3])
+                hdrControls.hdrfactor = control
+            elseif setting[5] then
                 control = CreateSettingDropdown(panel, setting[1], setting[2], setting[3], setting[4], setting[5])
             else
                 control = CreateSettingCheckbox(panel, setting[1], setting[2], setting[3], setting[4])
@@ -331,6 +444,14 @@ function ErzbaroneUI.Config:RegisterSettingsPanel()
             control:SetPoint("TOPLEFT", previous, "BOTTOMLEFT", 0, index == 1 and -4 or 0)
             previous = control
         end
+
+        panel:RegisterEvent("CVAR_UPDATE")
+        panel:SetScript("OnEvent", function(_, _, name)
+            local control = name and hdrControls[name:lower()]
+            if control then
+                control:Refresh()
+            end
+        end)
 
         column.frame = previous
         column.x = 0
