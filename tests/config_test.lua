@@ -31,6 +31,7 @@ assert(#openedCategories == 2 and openedCategories[2] == categoryID,
     "Right-clicking the AddOns entry must open the current settings category")
 
 local frames = {}
+local dropdowns = {}
 local function Widget(name)
     local widget = { name = name, scripts = {}, enabled = true, fontStrings = {} }
     function widget:GetName() return self.name end
@@ -74,6 +75,7 @@ end
 function CreateFrame(kind, name, parent, template)
     local frame = Widget(name)
     frame.parent, frame.template = parent, template
+    if kind == "DropdownButton" then dropdowns[#dropdowns + 1] = frame end
     if kind == "CheckButton" then frame.Text = Widget() end
     if name then
         frames[name] = frame
@@ -99,6 +101,18 @@ C_CVar = {
 Settings.RegisterCanvasLayoutCategory = function() return { GetID = function() return 1 end } end
 Settings.RegisterAddOnCategory = function() end
 ErzbaroneUI.StatusBars = { GetTextureOptions = function() return {} end }
+local emoteUpdates = 0
+ErzbaroneUI.Emotes = {
+    GetFontSizeOptions = function() return { { 12, "12" }, { 24, "24" } } end,
+    Update = function() emoteUpdates = emoteUpdates + 1 end,
+}
+local primaryKey, secondaryKey
+function GetBindingKey(action)
+    assert(action == "ERZBARONEUI_EMOTE_WHEEL", "Settings must use the existing binding identifier")
+    return primaryKey, secondaryKey
+end
+function GetBindingText(key) return "display:" .. key end
+Settings.KEYBINDINGS_CATEGORY_ID = 99
 ErzbaroneUI.Config.Panel = nil
 ErzbaroneUI.Config:RegisterSettingsPanel()
 panel = ErzbaroneUI.Config.Panel
@@ -148,5 +162,40 @@ panel.scripts.OnEvent(panel, "CVAR_UPDATE", "HDRFactor")
 assert(not checkbox.enabled and not slider.enabled, "Unavailable CVars disable their controls")
 assert(checkbox.Text.text:find("unavailable", 1, true))
 assert(next(ErzbaroneUISettings) == nil, "HDR CVars are not duplicated in addon settings")
+
+local bindingButton = assert(frames.ErzbaroneUIEmoteKeybinding, "Missing emote binding control")
+assert(bindingButton.text == "Not bound", "Binding control must show when no key is assigned")
+primaryKey, secondaryKey = "SHIFT-F", "CTRL-G"
+bindingButton.parent.scripts.OnEvent(bindingButton.parent, "UPDATE_BINDINGS")
+assert(bindingButton.text == "display:SHIFT-F / display:CTRL-G", "Binding changes must refresh both localized keys")
+bindingButton.scripts.OnClick(bindingButton)
+assert(openedCategories[#openedCategories] == 99, "Binding control must open native Keybindings settings")
+primaryKey, secondaryKey = nil, nil
+bindingButton.parent.scripts.OnShow(bindingButton.parent)
+assert(bindingButton.text == "Not bound", "Reopening settings must refresh removed bindings")
+
+local fontDropdown
+for _, dropdown in ipairs(dropdowns) do
+    if dropdown.parent.fontStrings[1].text == "Font Size" then fontDropdown = dropdown end
+end
+assert(fontDropdown, "Missing emote font-size dropdown")
+local radios = {}
+fontDropdown.menu(fontDropdown, {
+    CreateRadio = function(_, label, isSelected, selectOption)
+        radios[label] = { isSelected = isSelected, selectOption = selectOption }
+    end,
+})
+radios["24"].selectOption()
+assert(ErzbaroneUISettings.emoteFontSize == 24 and radios["24"].isSelected(),
+    "Selecting font size must save a numeric preference")
+assert(emoteUpdates == 1, "Selecting font size must immediately refresh the emote box")
+local nativeSetup = ErzbaroneUI.Config.Setup
+ErzbaroneUI.Config.Setup = function() end
+ErzbaroneUI.Config:Initialize()
+assert(ErzbaroneUISettings.emoteFontSize == 24, "Initialization must preserve a saved font size")
+ErzbaroneUISettings.emoteFontSize = nil
+ErzbaroneUI.Config:Initialize()
+assert(ErzbaroneUISettings.emoteFontSize == 12, "Missing font size must default to the existing text size")
+ErzbaroneUI.Config.Setup = nativeSetup
 
 print("config_test.lua: all assertions passed")

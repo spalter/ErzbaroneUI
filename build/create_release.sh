@@ -37,6 +37,7 @@ cp -r "$SOURCE_DIR/modules" "$TEMP_DIR/$ADDON_NAME/"
 cp -r "$SOURCE_DIR/textures" "$TEMP_DIR/$ADDON_NAME/"
 cp "$SOURCE_DIR/ErzbaroneUI.toc" "$TEMP_DIR/$ADDON_NAME/"
 cp "$SOURCE_DIR/main.lua" "$TEMP_DIR/$ADDON_NAME/"
+cp "$SOURCE_DIR/Bindings.xml" "$TEMP_DIR/$ADDON_NAME/"
 cp "$SOURCE_DIR/LICENSE" "$TEMP_DIR/$ADDON_NAME/"
 
 # Navigate to the temp directory to create the zip with the correct root folder

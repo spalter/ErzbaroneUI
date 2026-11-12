@@ -24,6 +24,7 @@ local defaults = {
     unitClassColors = true,
     hideBagNames = true,
     hideThreatGlow = false,
+    emoteFontSize = 12,
 }
 
 --- Saved settings of removed features
@@ -166,6 +167,19 @@ local SECTIONS = {
             { "fadeRightBars", "Show Right Bars on Mouseover",
                 "Hides the vertical action bars on the right side of the screen until you move your mouse over them.",
                 function() ErzbaroneUI.BarFade:Update() end },
+        },
+    },
+    {
+        column = 2,
+        title = "Emotes",
+        settings = {
+            { "emoteKeybinding", "Keybinding",
+                "Shows the current Emote Quick Selection binding. Click to open WoW's Keybindings settings, then find ErzbaroneUI under AddOns.",
+                kind = "emoteBinding" },
+            { "emoteFontSize", "Font Size",
+                "Changes the emote names' font size. The box and hover rows resize immediately to fit.",
+                function() ErzbaroneUI.Emotes:Update() end,
+                function() return ErzbaroneUI.Emotes:GetFontSizeOptions() end },
         },
     },
     {
@@ -336,7 +350,7 @@ local function CreateHDRSlider(parent, label, tooltip)
     return row
 end
 
---- Creates a labeled dropdown bound to a string entry in ErzbaroneUISettings.
+--- Creates a labeled dropdown bound to a string or numeric entry in ErzbaroneUISettings.
 --- getOptions returns a list of { value, label } pairs.
 local function CreateSettingDropdown(parent, key, label, tooltip, onChange, getOptions)
     local row = CreateFrame("Frame", nil, parent)
@@ -380,6 +394,45 @@ local function CreateSettingDropdown(parent, key, label, tooltip, onChange, getO
     row:SetScript("OnShow", function()
         dropdown:GenerateMenu()
     end)
+    return row
+end
+
+--- Shows the current emote binding and opens the game's native keybinding settings.
+local function CreateEmoteBindingButton(parent, label, tooltip)
+    local row = CreateFrame("Frame", nil, parent)
+    row:SetSize(COLUMN_WIDTH, ROW_HEIGHT + 4)
+    local text = row:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
+    text:SetPoint("LEFT", row, "LEFT", 4, 0)
+    text:SetText(label)
+
+    local button = CreateFrame("Button", "ErzbaroneUIEmoteKeybinding", row, "UIPanelButtonTemplate")
+    button:SetSize(170, 22)
+    button:SetPoint("RIGHT", row, "RIGHT", -4, 0)
+    local function Refresh()
+        local labels = {}
+        for _, key in ipairs({ GetBindingKey("ERZBARONEUI_EMOTE_WHEEL") }) do
+            labels[#labels + 1] = GetBindingText(key)
+        end
+        button:SetText(#labels > 0 and table.concat(labels, " / ") or "Not bound")
+    end
+    row:RegisterEvent("UPDATE_BINDINGS")
+    row:SetScript("OnEvent", Refresh)
+    row:SetScript("OnShow", Refresh)
+    button:SetScript("OnClick", function()
+        if not Settings.KEYBINDINGS_CATEGORY_ID then
+            print("ErzbaroneUI: WoW's Keybindings settings are not ready.")
+            return
+        end
+        Settings.OpenToCategory(Settings.KEYBINDINGS_CATEGORY_ID)
+    end)
+    button:SetScript("OnEnter", function(self)
+        GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+        GameTooltip:SetText(label, 1, 1, 1)
+        GameTooltip:AddLine(tooltip, nil, nil, nil, true)
+        GameTooltip:Show()
+    end)
+    button:SetScript("OnLeave", GameTooltip_Hide)
+    Refresh()
     return row
 end
 
@@ -436,6 +489,8 @@ function ErzbaroneUI.Config:RegisterSettingsPanel()
             elseif setting.kind == "hdrSlider" then
                 control = CreateHDRSlider(panel, setting[2], setting[3])
                 hdrControls.hdrfactor = control
+            elseif setting.kind == "emoteBinding" then
+                control = CreateEmoteBindingButton(panel, setting[2], setting[3])
             elseif setting[5] then
                 control = CreateSettingDropdown(panel, setting[1], setting[2], setting[3], setting[4], setting[5])
             else

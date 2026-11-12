@@ -1,0 +1,5 @@
+<Bindings>
+    <Binding name="ERZBARONEUI_EMOTE_WHEEL" header="ERZBARONEUI" category="ADDONS" runOnUp="true">
+        ErzbaroneUI.Emotes:HandleBinding(keystate);
+    </Binding>
+</Bindings>

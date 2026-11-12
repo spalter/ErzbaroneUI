@@ -18,6 +18,7 @@ modules\threatglow.lua
 modules\castcount.lua
 modules\rangetint.lua
 modules\barfade.lua
+modules\emotes.lua
 modules\actionlayout.lua
 modules\mainbar.lua
 modules\chat.lua
