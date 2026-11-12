@@ -176,16 +176,17 @@ local FADE_SPEED = 6 -- alpha per second
 local fader = CreateFrame("Frame")
 local fadeAlpha = 1
 
---- Returns the tracking, calendar and addon-compartment buttons that can fade.
-local function GetFadeButtons()
-    return { MinimapCluster.Tracking, GameTimeFrame, AddonCompartmentFrame }
+local function SetButtonAlpha(button, alpha)
+    if button and button:GetAlpha() ~= alpha then
+        button:SetAlpha(alpha)
+    end
 end
 
 --- Sets the alpha of each minimap button controlled by the fade feature.
-local function SetButtonsAlpha(alpha)
-    for _, button in pairs(GetFadeButtons()) do
-        button:SetAlpha(alpha)
-    end
+local function SetButtonsAlpha(alpha, hasInvites)
+    SetButtonAlpha(MinimapCluster.Tracking, alpha)
+    SetButtonAlpha(GameTimeFrame, hasInvites and 1 or alpha)
+    SetButtonAlpha(AddonCompartmentFrame, alpha)
 end
 
 --- Returns whether a button currently has its dropdown menu open.
@@ -204,34 +205,23 @@ local function ShouldShowButtons()
     if IsMenuOpen(MinimapCluster.Tracking.Button) or IsMenuOpen(AddonCompartmentFrame) then
         return true
     end
-    for _, button in pairs(GetFadeButtons()) do
-        if button:IsMouseOver() then
-            return true
-        end
-    end
-    return false
+    return MinimapCluster.Tracking:IsMouseOver()
+        or (GameTimeFrame and GameTimeFrame:IsMouseOver())
+        or (AddonCompartmentFrame and AddonCompartmentFrame:IsMouseOver())
 end
 
 --- Updates minimap button alpha while preserving visibility for pending invites.
 local function OnFadeUpdate(_, elapsed)
     -- Pending calendar invites should never be hidden
     local hasInvites = GameTimeCalendarInvitesTexture and GameTimeCalendarInvitesTexture:IsShown()
-    GameTimeFrame:SetAlpha(hasInvites and 1 or fadeAlpha)
 
     local target = ShouldShowButtons() and 1 or 0
-    if fadeAlpha == target then
-        return
-    end
-
     if fadeAlpha < target then
         fadeAlpha = math.min(target, fadeAlpha + FADE_SPEED * elapsed)
     else
         fadeAlpha = math.max(target, fadeAlpha - FADE_SPEED * elapsed)
     end
-    SetButtonsAlpha(fadeAlpha)
-    if hasInvites then
-        GameTimeFrame:SetAlpha(1)
-    end
+    SetButtonsAlpha(fadeAlpha, hasInvites)
 end
 
 --- Resets button visibility and enables or disables the minimap fade updater.

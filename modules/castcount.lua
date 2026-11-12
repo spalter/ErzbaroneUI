@@ -120,11 +120,15 @@ local function GetCastCount(mana, cost)
 end
 
 --- Updates the cast count label of a single action button.
-local function UpdateButton(button, mana)
+local function UpdateButton(button, mana, manaCosts)
     local label = button.ErzbaroneUICastCount
     local action = GetButtonAction(button)
-    local spellID = ErzbaroneUISettings.castCount and GetActionSpellID(action)
-    local cost = spellID and GetManaCost(spellID)
+    local spellID = GetActionSpellID(action)
+    if spellID and manaCosts[spellID] == nil then
+        -- False caches spells without a mana cost for this refresh.
+        manaCosts[spellID] = GetManaCost(spellID) or false
+    end
+    local cost = spellID and manaCosts[spellID]
     local count = cost and GetCastCount(mana, cost)
 
     if not count then
@@ -145,38 +149,28 @@ local function UpdateButton(button, mana)
     label:Show()
 end
 
---- Updates the cast count labels on all action buttons.
-function ErzbaroneUI.CastCount:Update()
-    RefreshMaxMana()
-    local mana = UnitPower("player", MANA)
-    ErzbaroneUI.Utils:ForEachActionButton(function(button)
-        UpdateButton(button, mana)
-    end)
-end
-
---- Schedules an update on the next frame so Blizzard can refresh the buttons first.
-function ErzbaroneUI.CastCount:RequestUpdate()
-    if self.EventFrame then
-        self.EventFrame:Show()
-    end
-end
-
---- Registers the events which can change mana, spell costs or button contents.
-function ErzbaroneUI.CastCount:Initialize()
-    if self.EventFrame then
-        self:RequestUpdate()
+--- Subscribes only while enabled and clears existing labels once when disabled.
+local function UpdateEvents(self)
+    local eventFrame = self.EventFrame
+    local enabled = ErzbaroneUISettings.castCount and true or false
+    if not eventFrame or self.EventsEnabled == enabled then
         return
     end
 
-    local eventFrame = CreateFrame("Frame")
-    eventFrame:Hide()
-    eventFrame:SetScript("OnUpdate", function(frame)
-        frame:Hide()
-        ErzbaroneUI.CastCount:Update()
-    end)
-    eventFrame:SetScript("OnEvent", function()
-        ErzbaroneUI.CastCount:RequestUpdate()
-    end)
+    local wasEnabled = self.EventsEnabled
+    self.EventsEnabled = enabled
+    if not enabled then
+        eventFrame:UnregisterAllEvents()
+        eventFrame:Hide()
+        if wasEnabled then
+            ErzbaroneUI.Utils:ForEachActionButton(function(button)
+                if button.ErzbaroneUICastCount then
+                    button.ErzbaroneUICastCount:Hide()
+                end
+            end)
+        end
+        return
+    end
 
     eventFrame:RegisterUnitEvent("UNIT_POWER_UPDATE", "player")
     eventFrame:RegisterUnitEvent("UNIT_MAXPOWER", "player")
@@ -193,7 +187,52 @@ function ErzbaroneUI.CastCount:Initialize()
     }) do
         pcall(eventFrame.RegisterEvent, eventFrame, event)
     end
+end
+
+--- Updates the cast count labels on all action buttons.
+function ErzbaroneUI.CastCount:Update()
+    UpdateEvents(self)
+    if not ErzbaroneUISettings.castCount then
+        return
+    end
+
+    RefreshMaxMana()
+    local mana = UnitPower("player", MANA)
+    local manaCosts = {}
+    ErzbaroneUI.Utils:ForEachActionButton(function(button)
+        UpdateButton(button, mana, manaCosts)
+    end)
+end
+
+--- Schedules an update on the next frame so Blizzard can refresh the buttons first.
+function ErzbaroneUI.CastCount:RequestUpdate()
+    if self.EventFrame and ErzbaroneUISettings.castCount then
+        self.EventFrame:Show()
+    end
+end
+
+--- Registers the events which can change mana, spell costs or button contents.
+function ErzbaroneUI.CastCount:Initialize()
+    if self.EventFrame then
+        UpdateEvents(self)
+        self:RequestUpdate()
+        return
+    end
+
+    local eventFrame = CreateFrame("Frame")
+    eventFrame:Hide()
+    eventFrame:SetScript("OnUpdate", function(frame)
+        frame:Hide()
+        ErzbaroneUI.CastCount:Update()
+    end)
+    eventFrame:SetScript("OnEvent", function(_, event, _, powerType)
+        if (event == "UNIT_POWER_UPDATE" or event == "UNIT_MAXPOWER") and powerType ~= "MANA" then
+            return
+        end
+        ErzbaroneUI.CastCount:RequestUpdate()
+    end)
 
     self.EventFrame = eventFrame
+    UpdateEvents(self)
     self:RequestUpdate()
 end

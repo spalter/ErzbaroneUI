@@ -16,6 +16,7 @@ local backgrounds = {}
 local originalSlotArt = {}
 local hookedButtons = {}
 local warnedSlotArt = {}
+local readySlotArt = {}
 
 --- Keeps textured slots visible after native artwork updates while mouseover fading is enabled.
 local function ApplySlotArt(button)
@@ -47,6 +48,7 @@ local function UpdateSlotArt(bar)
         warnedSlotArt[bar] = true
         print("ErzbaroneUI: Vertical action-button slot artwork is not ready. It will be retried on the next fade update.")
     end
+    readySlotArt[bar] = ready and { buttons = bar.actionButtons, count = #bar.actionButtons } or nil
 end
 
 --- Reuses the main-bar backdrop as a child texture so it inherits the vertical bar's fade.
@@ -65,22 +67,26 @@ local function UpdateBackground(bar, enabled)
     end
 end
 
---- Returns the right-side action bars that currently exist and are shown.
-local function GetBars()
-    local bars = {}
+--- Prepares late-loaded bars and checks visible bars without building a temporary list.
+local function UpdateBars()
+    local shown, hovered = false, false
     for _, name in ipairs(BAR_NAMES) do
         local bar = _G[name]
         if bar then
-            UpdateSlotArt(bar)
+            local ready = readySlotArt[bar]
+            if not ready or ready.buttons ~= bar.actionButtons or ready.count ~= #bar.actionButtons then
+                UpdateSlotArt(bar)
+            end
             if not backgrounds[bar] then
                 UpdateBackground(bar, true)
             end
             if bar:IsShown() then
-                table.insert(bars, bar)
+                shown = true
+                hovered = hovered or bar:IsMouseOver()
             end
         end
     end
-    return bars
+    return shown, hovered
 end
 
 --- Sets the alpha of both right-side action bars.
@@ -94,7 +100,7 @@ local function SetBarsAlpha(alpha)
 end
 
 --- The bars stay visible while hovered, while placing an action on them or while Edit Mode is open.
-local function ShouldShow(bars)
+local function ShouldShow(hovered)
     if EditModeManagerFrame and EditModeManagerFrame:IsEditModeActive() then
         return true
     end
@@ -104,22 +110,17 @@ local function ShouldShow(bars)
     if SpellFlyout and SpellFlyout:IsShown() and SpellFlyout:IsMouseOver() then
         return true
     end
-    for _, bar in ipairs(bars) do
-        if bar:IsMouseOver() then
-            return true
-        end
-    end
-    return false
+    return hovered
 end
 
 --- Fades the right-side bars toward their hover-dependent target alpha.
 local function OnUpdate(_, elapsed)
-    local bars = GetBars()
-    if #bars == 0 then
+    local shown, hovered = UpdateBars()
+    if not shown then
         return
     end
 
-    local target = ShouldShow(bars) and 1 or HIDDEN_ALPHA
+    local target = ShouldShow(hovered) and 1 or HIDDEN_ALPHA
     if currentAlpha == target then
         return
     end
@@ -141,6 +142,7 @@ function ErzbaroneUI.BarFade:Update()
             button.SlotBackground:SetShown(state.backgroundShown)
         end
         originalSlotArt = {}
+        readySlotArt = {}
     end
     for _, name in ipairs(BAR_NAMES) do
         local bar = _G[name]

@@ -47,7 +47,15 @@ Run the AddOns menu integration test with `lua tests\config_test.lua`.
 
 Run the enemy nameplate health display test with `lua tests\nameplates_test.lua`.
 
+Run the cast-count update tests with `lua tests\castcount_test.lua`.
+They check disabled-state cleanup and idle behavior, mana-event filtering, coalesced updates, re-enabling and per-refresh spell-cost reuse across spells and macros, including free spells and changing costs.
+
 Run the vertical action-bar backdrop and mouseover fade tests with `lua tests\barfade_test.lua`.
+They also check that ready artwork is not rescanned each frame, while late artwork and new button lists are still initialized.
+
+Run the minimap button-fade tests with `lua tests\minimap_test.lua`.
+They check idle alpha-write suppression, hover and dropdown visibility, calendar invites, late-loaded buttons and runtime toggles.
+The layout regression tests also check idle alpha-write suppression for the micro menu and bag bar.
 
 Run the emote selection interaction tests with `lua tests\emotes_test.lua`.
 

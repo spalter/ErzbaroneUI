@@ -93,6 +93,19 @@ Equal(MultiBarRight.alpha, 0.25, "Buttons must fade out gradually")
 Equal(MultiBarRight.textures[1]:GetEffectiveAlpha(), 0.25, "Backdrop must fade with buttons")
 updater:OnUpdate(1)
 Equal(MultiBarLeft.textures[1]:GetEffectiveAlpha(), 0, "Backdrop must disappear when idle")
+local artworkScans = 0
+local nativeIpairs = ipairs
+ipairs = function(list)
+    if list == MultiBarRight.actionButtons or list == MultiBarLeft.actionButtons then
+        artworkScans = artworkScans + 1
+    end
+    return nativeIpairs(list)
+end
+for _ = 1, 600 do
+    updater:OnUpdate(1 / 60)
+end
+ipairs = nativeIpairs
+Equal(artworkScans, 0, "Ready bars must not rescan button artwork during idle fade updates")
 MultiBarLeft.hovered = true
 updater:OnUpdate(1)
 Equal(MultiBarRight.textures[1]:GetEffectiveAlpha(), 1, "Hover must reveal both backdrops")
@@ -139,6 +152,34 @@ Equal(MultiBarLeft.actionButtons[12].SlotArt:IsShown(), true, "Late bars must re
 Equal(MultiBarLeft.textures[1]:GetEffectiveAlpha(), 0, "Late backdrops must join the fade")
 updater:OnUpdate(1)
 Equal(#MultiBarLeft.textures, 1, "Fade updates must not duplicate backdrops")
+
+ErzbaroneUISettings.fadeRightBars = false
+ErzbaroneUI.BarFade:Update()
+MultiBarLeft = Bar()
+local delayedButton = MultiBarLeft.actionButtons[12]
+local delayedArt = delayedButton.SlotArt
+delayedButton.SlotArt = nil
+ErzbaroneUISettings.fadeRightBars = true
+ErzbaroneUI.BarFade:Update()
+updater:OnUpdate(1)
+Equal(MultiBarLeft.actionButtons[1].SlotArt:IsShown(), true, "Ready artwork must apply before all slots load")
+delayedButton.SlotArt = delayedArt
+updater:OnUpdate(1)
+Equal(delayedArt:IsShown(), true, "Missing slot artwork must be retried after it loads")
+delayedButton:UpdateButtonArt()
+Equal(delayedArt:IsShown(), true, "Late artwork must retain the native update hook")
+
+local delayedButtons = MultiBarLeft.actionButtons
+MultiBarLeft.actionButtons = {}
+updater:OnUpdate(1)
+MultiBarLeft.actionButtons = { Bar().actionButtons[1] }
+updater:OnUpdate(1)
+Equal(MultiBarLeft.actionButtons[1].SlotArt:IsShown(), true, "Replaced button lists must receive artwork")
+MultiBarLeft.actionButtons[2] = Bar().actionButtons[1]
+updater:OnUpdate(1)
+Equal(MultiBarLeft.actionButtons[2].SlotArt:IsShown(), true, "New buttons must receive artwork when a list grows")
+MultiBarLeft.actionButtons = delayedButtons
+updater:OnUpdate(1)
 
 local lateButton = MultiBarLeft.actionButtons[1]
 ErzbaroneUISettings.fadeRightBars = false

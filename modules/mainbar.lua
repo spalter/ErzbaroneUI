@@ -93,12 +93,9 @@ local function IsEditModeActive()
     return EditModeManagerFrame and EditModeManagerFrame:IsEditModeActive()
 end
 
---- Checks whether a frame or any of its visible children is under the cursor.
-local function IsHovered(frame)
-    if frame:IsMouseOver() then
-        return true
-    end
-    for _, button in ipairs({ frame:GetChildren() }) do
+local function IsChildHovered(...)
+    for index = 1, select("#", ...) do
+        local button = select(index, ...)
         if button:IsShown() and button:IsMouseOver() then
             return true
         end
@@ -106,9 +103,17 @@ local function IsHovered(frame)
     return false
 end
 
+--- Checks children directly from the native multiple return values to avoid a temporary table.
+local function IsHovered(frame)
+    return frame:IsMouseOver() or IsChildHovered(frame:GetChildren())
+end
+
 --- Moves a frame's alpha toward visible or hidden according to hover and Edit Mode.
 local function Fade(frame, alpha, hovered, elapsed)
     local target = (hovered or IsEditModeActive()) and 1 or 0
+    if alpha == target and frame:GetAlpha() == alpha then
+        return alpha
+    end
     if alpha < target then
         alpha = math.min(target, alpha + FADE_SPEED * elapsed)
     else

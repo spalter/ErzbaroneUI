@@ -96,7 +96,10 @@ local function Frame(name)
         assert(not combat, "Protected parent changed in combat")
         self.parent = parent
     end
-    function frame:SetAlpha(alpha) self.alpha = alpha end
+    function frame:SetAlpha(alpha)
+        self.alpha = alpha
+        self.alphaWrites = (self.alphaWrites or 0) + 1
+    end
     function frame:EnableMouse(enabled)
         assert(not combat, "Protected mouse input changed in combat")
         self.mouseEnabled = enabled
@@ -974,6 +977,15 @@ assert(updater, "Mouseover updater missing")
 updater.OnUpdate(updater, 1)
 Equal(BagsBar:GetAlpha(), 0)
 Equal(MicroMenu:GetAlpha(), 0)
+local bagAlphaWrites, menuAlphaWrites = BagsBar.alphaWrites, MicroMenu.alphaWrites
+for _ = 1, 600 do updater.OnUpdate(updater, 1 / 60) end
+Equal(BagsBar.alphaWrites, bagAlphaWrites, "Idle bag fades must not write unchanged alpha")
+Equal(MicroMenu.alphaWrites, menuAlphaWrites, "Idle menu fades must not write unchanged alpha")
+BagsBar:SetAlpha(1)
+MicroMenu:SetAlpha(1)
+updater.OnUpdate(updater, 1)
+Equal(BagsBar:GetAlpha(), 0, "Native alpha changes must not reveal idle bags")
+Equal(MicroMenu:GetAlpha(), 0, "Native alpha changes must not reveal the idle menu")
 local bagButton = Frame("bagButton")
 bagButton.hovered = true
 BagsBar.children = { bagButton }
