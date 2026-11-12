@@ -21,6 +21,7 @@ The addon is available on CurseForge too, search for `ErzbaroneUI` or [on their 
 - Optional swing timer spark on the player power bar for melee and ranged fighters
 - Textured health and power bars on the unit frames (classic, smooth, skills or a custom `textures\statusbar` file), also selectable for the cast bars
 - Class colored health bars for players and grey health bars for creatures tapped by others
+- Optional compact remaining-health numbers on enemy nameplates (disabled by default)
 - Optionally hides the large threat glow around the player, target and focus frames
 - Cast count on action buttons (how often a mana spell can be cast with the current mana)
 - Red tint on action buttons while the target is out of range
@@ -43,6 +44,8 @@ Actual combat protection still needs testing in the Forever client.
 The layout tests also check micro menu position presets, scaled bag alignment, combat-deferred position changes and native placement while the experimental layout is disabled.
 
 Run the AddOns menu integration test with `lua tests\config_test.lua`.
+
+Run the enemy nameplate health display test with `lua tests\nameplates_test.lua`.
 
 Run the vertical action-bar backdrop and mouseover fade tests with `lua tests\barfade_test.lua`.
 

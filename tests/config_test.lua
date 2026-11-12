@@ -106,6 +106,10 @@ ErzbaroneUI.Emotes = {
     GetFontSizeOptions = function() return { { 12, "12" }, { 24, "24" } } end,
     Update = function() emoteUpdates = emoteUpdates + 1 end,
 }
+local nameplateUpdates = 0
+ErzbaroneUI.Nameplates = {
+    Update = function() nameplateUpdates = nameplateUpdates + 1 end,
+}
 local mainBarUpdates = 0
 dofile(root .. "modules\\mainbar.lua")
 ErzbaroneUI.MainBar.Update = function() mainBarUpdates = mainBarUpdates + 1 end
@@ -121,9 +125,19 @@ ErzbaroneUI.Config:RegisterSettingsPanel()
 panel = ErzbaroneUI.Config.Panel
 local checkbox = frames.ErzbaroneUISetting_HDROutput
 local slider = frames.ErzbaroneUIHDRFactorSlider
+local nameplateHealth = frames.ErzbaroneUISetting_nameplateHealth
 assert(panel.event == "CVAR_UPDATE")
 assert(#writes == 0, "Opening settings must not change HDR CVars")
 assert(not checkbox.checked and slider.value == 2)
+assert(not nameplateHealth.checked, "Enemy nameplate health is disabled by default")
+nameplateHealth:SetChecked(true)
+nameplateHealth.scripts.OnClick(nameplateHealth)
+assert(ErzbaroneUISettings.nameplateHealth and nameplateUpdates == 1,
+    "Enabling enemy nameplate health saves the setting and refreshes the module")
+nameplateHealth:SetChecked(false)
+nameplateHealth.scripts.OnClick(nameplateHealth)
+assert(not ErzbaroneUISettings.nameplateHealth and nameplateUpdates == 2,
+    "Disabling enemy nameplate health saves the setting and refreshes the module")
 assert(slider.minimum == 1 and slider.maximum == 2 and slider.step == 0.01 and slider.obeyStep)
 checkbox:SetChecked(true)
 checkbox.scripts.OnClick(checkbox)
@@ -164,7 +178,8 @@ panel.scripts.OnEvent(panel, "CVAR_UPDATE", "HDROutput")
 panel.scripts.OnEvent(panel, "CVAR_UPDATE", "HDRFactor")
 assert(not checkbox.enabled and not slider.enabled, "Unavailable CVars disable their controls")
 assert(checkbox.Text.text:find("unavailable", 1, true))
-assert(next(ErzbaroneUISettings) == nil, "HDR CVars are not duplicated in addon settings")
+assert(ErzbaroneUISettings.HDROutput == nil and ErzbaroneUISettings.HDRFactor == nil,
+    "HDR CVars are not duplicated in addon settings")
 
 local bindingButton = assert(frames.ErzbaroneUIEmoteKeybinding, "Missing emote binding control")
 assert(bindingButton.text == "Not bound", "Binding control must show when no key is assigned")
@@ -217,9 +232,11 @@ assert(ErzbaroneUISettings.emoteFontSize == 24, "Initialization must preserve a 
 assert(ErzbaroneUISettings.microMenuPosition == "aboveBags", "Initialization must preserve a saved menu position")
 ErzbaroneUISettings.emoteFontSize = nil
 ErzbaroneUISettings.microMenuPosition = nil
+ErzbaroneUISettings.nameplateHealth = nil
 ErzbaroneUI.Config:Initialize()
 assert(ErzbaroneUISettings.emoteFontSize == 12, "Missing font size must default to the existing text size")
 assert(ErzbaroneUISettings.microMenuPosition == "bottomLeft", "Missing menu position must default to left of gryphons")
+assert(not ErzbaroneUISettings.nameplateHealth, "Missing enemy nameplate setting must default to disabled")
 ErzbaroneUI.Config.Setup = nativeSetup
 
 print("config_test.lua: all assertions passed")

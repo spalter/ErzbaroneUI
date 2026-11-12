@@ -13,6 +13,7 @@ modules\effects.lua
 modules\fivesecondrule.lua
 modules\swingtimer.lua
 modules\statusbars.lua
+modules\nameplates.lua
 modules\castbars.lua
 modules\threatglow.lua
 modules\castcount.lua
