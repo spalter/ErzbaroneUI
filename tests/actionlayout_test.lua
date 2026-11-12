@@ -590,6 +590,47 @@ assert(math.abs(menuAnchor:GetLeft() + menuAnchor:GetWidth()
 assert(math.abs(menuAnchor:GetBottom()
     - BagsBar:GetBottom() * BagsBar:GetEffectiveScale() / menuAnchor:GetEffectiveScale()) < 0.0001,
     "Bottom edges remain aligned when bags change scale")
+ErzbaroneUISettings.microMenuPosition = "aboveBags"
+ErzbaroneUI.MainBar:Update()
+Equal(menuAnchor:GetPoint(1), "BOTTOMRIGHT")
+Equal(select(2, menuAnchor:GetPoint(1)), BagsBar)
+Equal(select(3, menuAnchor:GetPoint(1)), "TOPRIGHT")
+assert(math.abs(menuAnchor:GetRight()
+    - BagsBar:GetRight() * BagsBar:GetEffectiveScale() / menuAnchor:GetEffectiveScale()) < 0.0001,
+    "Above-bags preset aligns right edges with scaled bags")
+assert(math.abs(menuAnchor:GetBottom()
+    - BagsBar:GetTop() * BagsBar:GetEffectiveScale() / menuAnchor:GetEffectiveScale() - 8) < 0.0001,
+    "Above-bags preset keeps an eight-unit vertical gap")
+AssertSelection(MicroMenuContainer.Selection, menuAnchor)
+combat = true
+ErzbaroneUISettings.microMenuPosition = "bottomLeft"
+ErzbaroneUI.MainBar:Update()
+Equal(ErzbaroneUI.MainBar.PendingUpdate, true)
+Equal(select(2, menuAnchor:GetPoint(1)), BagsBar, "Position changes wait until combat ends")
+combat = false
+events.PLAYER_REGEN_ENABLED.OnEvent(events.PLAYER_REGEN_ENABLED, "PLAYER_REGEN_ENABLED")
+Flush()
+menuPoint, menuRelative, menuRelativePoint, menuX, menuY = menuAnchor:GetPoint(1)
+Equal(menuPoint, "BOTTOMRIGHT")
+Equal(menuRelative, UIParent)
+Equal(menuRelativePoint, "BOTTOMLEFT")
+local leftCap = MainActionBar.EndCaps.LeftEndCap
+Equal(menuX, leftCap:GetLeft() * leftCap:GetEffectiveScale() / UIParent:GetEffectiveScale() - 8)
+Equal(menuY, 12)
+AssertSelection(MicroMenuContainer.Selection, menuAnchor)
+local originalCapLeft, originalCapScale = leftCap.left, leftCap:GetScale()
+leftCap.left = nil
+leftCap:SetScale(0.75)
+ErzbaroneUI.MainBar:Update()
+assert(math.abs(menuAnchor:GetRight()
+    - leftCap:GetLeft() * leftCap:GetEffectiveScale() / menuAnchor:GetEffectiveScale() + 8) < 0.0001,
+    "Gryphon preset keeps an eight-unit gap beside the actual scaled gryphon")
+Equal(menuAnchor:GetBottom(), 12, "Gryphon preset stays near the screen bottom")
+leftCap.left = originalCapLeft
+leftCap:SetScale(originalCapScale)
+ErzbaroneUISettings.microMenuPosition = "besideBags"
+ErzbaroneUI.MainBar:Update()
+Equal(select(3, menuAnchor:GetPoint(1)), "BOTTOMLEFT", "Switching back restores the existing preset")
 BagsBar:SetWidth(originalBagWidth)
 BagsBar:SetScaleBase(1)
 hooks[BagsBar].SetScale(BagsBar, 1)
@@ -1034,6 +1075,18 @@ Equal(lateDivider:GetAlpha(), 1, "Disabling restores divider alpha")
 Equal(MainActionBar.ActionBarPageNumber:GetParent(), MainActionBar)
 Equal(MicroMenu:GetParent(), MicroMenuContainer)
 AssertSelection(MicroMenuContainer.Selection, MicroMenuContainer)
+for _, position in ipairs({ "bottomLeft", "aboveBags", "besideBags" }) do
+    ErzbaroneUISettings.microMenuPosition = position
+    ErzbaroneUI.MainBar:Update()
+    Equal(MicroMenu:GetParent(), MicroMenuContainer, "Presets do not reparent the native menu while disabled")
+    local point, relative, relativePoint, x, y = MicroMenu:GetPoint(1)
+    Equal(point, "BOTTOM", "Presets leave native anchors unchanged while disabled")
+    Equal(relative, UIParent)
+    Equal(relativePoint, "BOTTOM")
+    Equal(x, 20)
+    Equal(y, 30)
+    AssertSelection(MicroMenuContainer.Selection, MicroMenuContainer)
+end
 for _, bar in ipairs({ MainActionBar, MultiBarBottomLeft, MultiBarBottomRight }) do
     AssertSelection(bar.Selection, bar)
 end
@@ -1074,13 +1127,18 @@ end
 
 -- A real reload rebuilds frames; no Edit Mode manager or profile is needed at startup.
 ErzbaroneUISettings.compactMainBar = true
+ErzbaroneUISettings.microMenuPosition = "aboveBags"
 Setup(true)
 AssertCustomShape()
+Equal(select(3, MicroMenu:GetParent():GetPoint(1)), "TOPRIGHT", "Reload reapplies the saved menu position")
 Equal(ErzbaroneUILayout, legacyState)
 Equal(#messages, 0, "Routine updates must not print errors")
 ErzbaroneUISettings.compactMainBar = false
 ErzbaroneUI.MainBar:Update()
 Equal(MainActionBar.actionButtons[1]:GetAlpha(), 1)
+Equal(MicroMenu:GetParent(), MicroMenuContainer, "Disabling the above-bags preset restores the native parent")
+Equal(MicroMenu:GetPoint(1), "BOTTOM", "Disabling the above-bags preset restores native anchors")
+ErzbaroneUISettings.microMenuPosition = "besideBags"
 
 -- Enabling during combat does not create protected frames until regeneration.
 Setup()

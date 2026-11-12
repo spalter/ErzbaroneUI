@@ -29,6 +29,7 @@ The addon is available on CurseForge too, search for `ErzbaroneUI` or [on their 
 - Hides the vertical action bars on the right until hovered
 - Emote selection beside the mouse cursor, with 24 emotes
 - Improved Main Actionbar Layout
+- Micro menu position presets
 - Hides the bag names in the bag windows
 - Compact minimap until the minimap is hovered
 
@@ -39,6 +40,7 @@ They reject all Edit Mode profile API calls and writes to native secure button r
 Auxiliary buttons use stable anchors prepared outside combat while their native containers, visibility and click handlers remain unchanged. Grid and stacking changes during combat are applied after combat ends.
 Gryphon anchors are maintained synchronously during native layout updates to avoid briefly reverting to their default positions; tests check this without flushing queued updates.
 Actual combat protection still needs testing in the Forever client.
+The layout tests also check micro menu position presets, scaled bag alignment, combat-deferred position changes and native placement while the experimental layout is disabled.
 
 Run the AddOns menu integration test with `lua tests\config_test.lua`.
 

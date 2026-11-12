@@ -106,6 +106,9 @@ ErzbaroneUI.Emotes = {
     GetFontSizeOptions = function() return { { 12, "12" }, { 24, "24" } } end,
     Update = function() emoteUpdates = emoteUpdates + 1 end,
 }
+local mainBarUpdates = 0
+dofile(root .. "modules\\mainbar.lua")
+ErzbaroneUI.MainBar.Update = function() mainBarUpdates = mainBarUpdates + 1 end
 local primaryKey, secondaryKey
 function GetBindingKey(action)
     assert(action == "ERZBARONEUI_EMOTE_WHEEL", "Settings must use the existing binding identifier")
@@ -189,13 +192,34 @@ radios["24"].selectOption()
 assert(ErzbaroneUISettings.emoteFontSize == 24 and radios["24"].isSelected(),
     "Selecting font size must save a numeric preference")
 assert(emoteUpdates == 1, "Selecting font size must immediately refresh the emote box")
+local positionDropdown
+for _, dropdown in ipairs(dropdowns) do
+    if dropdown.parent.fontStrings[1].text == "Micro Menu Position" then positionDropdown = dropdown end
+end
+assert(positionDropdown, "Missing micro menu position dropdown")
+local positions = {}
+positionDropdown.menu(positionDropdown, {
+    CreateRadio = function(_, label, isSelected, selectOption)
+        positions[#positions + 1] = { label = label, isSelected = isSelected, selectOption = selectOption }
+    end,
+})
+assert(#positions == 3, "Micro menu must offer exactly three position presets")
+for index, value in ipairs({ "besideBags", "bottomLeft", "aboveBags" }) do
+    positions[index].selectOption()
+    assert(ErzbaroneUISettings.microMenuPosition == value and positions[index].isSelected(),
+        "Selecting a micro menu position must save the preference")
+end
+assert(mainBarUpdates == 3, "Selecting a position must request a layout update")
 local nativeSetup = ErzbaroneUI.Config.Setup
 ErzbaroneUI.Config.Setup = function() end
 ErzbaroneUI.Config:Initialize()
 assert(ErzbaroneUISettings.emoteFontSize == 24, "Initialization must preserve a saved font size")
+assert(ErzbaroneUISettings.microMenuPosition == "aboveBags", "Initialization must preserve a saved menu position")
 ErzbaroneUISettings.emoteFontSize = nil
+ErzbaroneUISettings.microMenuPosition = nil
 ErzbaroneUI.Config:Initialize()
 assert(ErzbaroneUISettings.emoteFontSize == 12, "Missing font size must default to the existing text size")
+assert(ErzbaroneUISettings.microMenuPosition == "bottomLeft", "Missing menu position must default to left of gryphons")
 ErzbaroneUI.Config.Setup = nativeSetup
 
 print("config_test.lua: all assertions passed")

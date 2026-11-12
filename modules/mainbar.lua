@@ -131,6 +131,14 @@ function ErzbaroneUI.MainBar:GetChatBottomInset()
     return 0
 end
 
+function ErzbaroneUI.MainBar:GetMicroMenuPositionOptions()
+    return {
+        { "besideBags", "Left of Bags" },
+        { "bottomLeft", "Left of Gryphons" },
+        { "aboveBags", "Above Bags" },
+    }
+end
+
 --- Queues one layout refresh for the next timer tick.
 function ErzbaroneUI.MainBar:RequestUpdate()
     if updating or updateQueued then
@@ -186,7 +194,9 @@ function ErzbaroneUI.MainBar:Update()
         end
 
         menuAnchor:ClearAllPoints()
-        if bagsApplied then
+        if bagsApplied and ErzbaroneUISettings.microMenuPosition == "aboveBags" then
+            menuAnchor:SetPoint("BOTTOMRIGHT", BagsBar, "TOPRIGHT", 0, MENU_GAP)
+        elseif bagsApplied and ErzbaroneUISettings.microMenuPosition ~= "bottomLeft" then
             menuAnchor:SetPoint("BOTTOMRIGHT", BagsBar, "BOTTOMLEFT", -MENU_GAP, 0)
         else
             local cap = MainActionBar.EndCaps.LeftEndCap
