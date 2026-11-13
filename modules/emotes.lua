@@ -1,13 +1,16 @@
 ErzbaroneUI = ErzbaroneUI or {}
 ErzbaroneUI.Emotes = {}
 
-local ROWS = 8
+local ROWS = 9
 local COLUMN_GAP = 8
 local PADDING = 20
+local COLUMN_PADDING = 12
 local CURSOR_GAP = 12
 local EMOTES = {
     { name = "Apologize", token = "APOLOGIZE" },
+    { name = "Attack Target", token = "ATTACKTARGET" },
     { name = "Beg", token = "BEG" },
+    { name = "Blame", token = "BLAME" },
     { name = "Bow", token = "BOW" },
     { name = "Bye", token = "BYE" },
     { name = "Cheer", token = "CHEER" },
@@ -16,20 +19,30 @@ local EMOTES = {
     { name = "Doh", token = "BONK" },
     { name = "Drink", token = "DRINK" },
     { name = "Flex", token = "FLEX" },
+    { name = "Flirt", token = "FLIRT" },
+    { name = "Follow Me", token = "FOLLOWME" },
     { name = "Golfclap", token = "GOLFCLAP" },
     { name = "Hi", token = "HELLO" },
     { name = "Hug", token = "HUG" },
     { name = "Kiss", token = "KISS" },
     { name = "Kneel", token = "KNEEL" },
     { name = "Laugh", token = "LAUGH" },
+    { name = "Mercy", token = "MERCY" },
+    { name = "No", token = "NO" },
+    { name = "Nod", token = "NOD" },
+    { name = "Oom", token = "OOM" },
     { name = "Point", token = "POINT" },
     { name = "Roar", token = "ROAR" },
     { name = "Rude", token = "RUDE" },
     { name = "Salute", token = "SALUTE" },
+    { name = "Scared", token = "SCARED" },
     { name = "Shrug", token = "SHRUG" },
+    { name = "Silly", token = "SILLY" },
     { name = "Sleep", token = "SLEEP" },
+    { name = "Taunt", token = "TAUNT" },
     { name = "Thanks", token = "THANK" },
     { name = "Wave", token = "WAVE" },
+    { name = "Yawn", token = "YAWN" },
 }
 
 local box
@@ -87,7 +100,7 @@ function ErzbaroneUI.Emotes:Update()
             print("ErzbaroneUI: Could not apply the emote font size.")
             return
         end
-        columnWidth = math.max(columnWidth, entry.label:GetStringWidth() + PADDING * 2)
+        columnWidth = math.max(columnWidth, entry.label:GetStringWidth() + COLUMN_PADDING * 2)
     end
     local columns = math.ceil(#EMOTES / ROWS)
     box:SetSize(PADDING * 2 + columns * columnWidth + (columns - 1) * COLUMN_GAP,
@@ -96,7 +109,7 @@ function ErzbaroneUI.Emotes:Update()
         entry.x = PADDING + math.floor((index - 1) / ROWS) * (columnWidth + COLUMN_GAP)
         entry.y = PADDING + ((index - 1) % ROWS) * rowHeight
         entry.label:ClearAllPoints()
-        entry.label:SetPoint("LEFT", box, "TOPLEFT", entry.x + PADDING, -entry.y - rowHeight / 2)
+        entry.label:SetPoint("LEFT", box, "TOPLEFT", entry.x + COLUMN_PADDING, -entry.y - rowHeight / 2)
         entry.highlight:SetSize(columnWidth, rowHeight)
         entry.highlight:ClearAllPoints()
         entry.highlight:SetPoint("TOPLEFT", box, "TOPLEFT", entry.x, -entry.y)
@@ -106,7 +119,7 @@ function ErzbaroneUI.Emotes:Update()
     end
 end
 
---- Creates a bronze-styled text selection box with at most eight entries per column.
+--- Creates a bronze-styled text selection box with at most nine entries per column.
 function ErzbaroneUI.Emotes:Initialize()
     if box then
         return

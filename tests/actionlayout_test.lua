@@ -458,6 +458,18 @@ AssertCustomShape()
 Equal(ErzbaroneUILayout, legacyState, "Legacy profile state is ignored")
 local customMainBar = ErzbaroneUIMainSecureBar
 local customBar2, customBar3 = ErzbaroneUIBottomLeftSecureBar, ErzbaroneUIBottomRightSecureBar
+local function AssertMainBarFrameFollowsCustomBar()
+    Equal(MainActionBar:GetNumPoints(), customMainBar:GetNumPoints())
+    for index = 1, customMainBar:GetNumPoints() do
+        local nativePoint = { MainActionBar:GetPoint(index) }
+        local customPoint = { customMainBar:GetPoint(index) }
+        Equal(#nativePoint, #customPoint)
+        for valueIndex, value in ipairs(customPoint) do
+            Equal(nativePoint[valueIndex], value, "Native main bar frame follows its compact action row")
+        end
+    end
+end
+AssertMainBarFrameFollowsCustomBar()
 local function AssertSelection(selection, target)
     Equal(selection:GetNumPoints(), 2)
     local system = selection:GetParent()
@@ -628,6 +640,8 @@ ErzbaroneUI.MainBar:Update()
 assert(math.abs(menuAnchor:GetRight()
     - leftCap:GetLeft() * leftCap:GetEffectiveScale() / menuAnchor:GetEffectiveScale() + 8) < 0.0001,
     "Gryphon preset keeps an eight-unit gap beside the actual scaled gryphon")
+assert(menuAnchor:GetRight() <= MainActionBar:GetLeft(),
+    "Left-of-gryphons menu no longer overlaps the native main action bar frame")
 Equal(menuAnchor:GetBottom(), 12, "Gryphon preset stays near the screen bottom")
 leftCap.left = originalCapLeft
 leftCap:SetScale(originalCapScale)
@@ -659,6 +673,7 @@ MainActionBar:SetPoint("BOTTOM", UIParent, "BOTTOM", 0, 100)
 hooks[MainActionBar].UpdateGridLayout()
 Notify()
 AssertCustomShape()
+AssertMainBarFrameFollowsCustomBar()
 for index, bar in ipairs({ MainActionBar, MultiBarBottomLeft, MultiBarBottomRight }) do
     AssertSelection(bar.Selection, ({ customMainBar, customBar2, customBar3 })[index])
 end
@@ -689,6 +704,7 @@ local function AssertBlockWidth(width)
     local _, _, _, rightX = MainActionBar.EndCaps.RightEndCap:GetPoint(1)
     Equal(leftX, 30, "Left gryphon follows the block's left edge")
     Equal(rightX, width - 30, "Right gryphon follows the block's right edge")
+    AssertMainBarFrameFollowsCustomBar()
     AssertEndCapsResistNativeAnchors()
 end
 
@@ -1067,6 +1083,13 @@ Equal(MainActionBar.actionButtons[1].container:GetParent(), MainActionBar, "Disa
 local _, _, _, restoredX, restoredY = MainActionBar.actionButtons[1].container:GetPoint(1)
 Equal(restoredX, 20, "Disabling restores native button anchors")
 Equal(restoredY, 30)
+local restoredMainPoint, restoredMainRelative, restoredMainRelativePoint, restoredMainX, restoredMainY =
+    MainActionBar:GetPoint(1)
+Equal(restoredMainPoint, "BOTTOM", "Disabling restores the native main action bar frame")
+Equal(restoredMainRelative, UIParent)
+Equal(restoredMainRelativePoint, "BOTTOM")
+Equal(restoredMainX, 20)
+Equal(restoredMainY, 30)
 Equal(MainActionBar.BorderArt:IsShown(), true)
 for _, cap in ipairs({ MainActionBar.EndCaps.LeftEndCap, MainActionBar.EndCaps.RightEndCap }) do
     local _, _, _, x, y = cap:GetPoint(1)

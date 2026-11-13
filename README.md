@@ -28,7 +28,7 @@ The addon is available on CurseForge too, search for `ErzbaroneUI` or [on their 
 - Hides the button column left of the chat window
 - Hides the chat tabs until the mouse is over the chat window
 - Hides the vertical action bars on the right until hovered
-- Emote selection beside the mouse cursor, with 24 emotes
+- Emote selection beside the mouse cursor, with 36 emotes
 - Improved Main Actionbar Layout
 - Micro menu position presets
 - Hides the bag names in the bag windows

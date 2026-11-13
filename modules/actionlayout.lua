@@ -17,6 +17,7 @@ local originalStatusBars = {}
 local originalAuxiliaryBars = {}
 local auxiliaryAnchors = {}
 local originalCastBar
+local originalMainBar
 local originalSlotArt = {}
 local originalBorderArtShown
 local originalEndCaps = {}
@@ -222,6 +223,11 @@ local function RestoreCustomBars()
         MainActionBar.ActionBarPageNumber:SetParent(originalPageNumberParent)
         SetPoints(MainActionBar.ActionBarPageNumber, originalPageNumberPoints)
     end
+    if originalMainBar then
+        local points = originalMainBar.points
+        originalMainBar = nil
+        SetPoints(MainActionBar, points)
+    end
     for _, bar in ipairs(customBars) do
         bar:Hide()
     end
@@ -295,6 +301,7 @@ local function ApplyCustomBars(width, rowY, left, bottom, leftWidth, mainHeight,
                 }
             end
         end
+        originalMainBar = { points = GetPoints(MainActionBar) }
         originalBorderArtShown = MainActionBar.BorderArt and MainActionBar.BorderArt:IsShown()
         for _, cap in ipairs({ MainActionBar.EndCaps.LeftEndCap, MainActionBar.EndCaps.RightEndCap }) do
             originalEndCaps[cap] = { points = GetPoints(cap) }
@@ -334,6 +341,9 @@ local function ApplyCustomBars(width, rowY, left, bottom, leftWidth, mainHeight,
         customBar:SetPoint("BOTTOMLEFT", UIParent, "BOTTOM", x, y)
         customBar:SetSize(barWidth / scale, barHeight / scale)
         customBar:Show()
+        if barIndex == 1 then
+            SetPoints(MainActionBar, GetPoints(customBar))
+        end
         local nativeBar = bars[barIndex]
         if nativeBar.Selection then
             if not originalSelections[nativeBar.Selection] then
@@ -385,7 +395,6 @@ local function ApplyCustomBars(width, rowY, left, bottom, leftWidth, mainHeight,
     SetPoints(MainActionBar.ActionBarPageNumber, {
         { "BOTTOMRIGHT", mainBar, "BOTTOMLEFT", -4 / mainScale, 9 / mainScale },
     })
-
     local rightBar = customBars[3]
     if not rightBar.background then
         rightBar.background = rightBar:CreateTexture(nil, "BACKGROUND", nil, -3)

@@ -102,11 +102,12 @@ Equal(#borders, 1, "Repeated initialization must reuse the decorative border")
 Equal(borders[1].relative, box, "Border anchors must resize with the box")
 Equal(borders[1].mouseEnabled, false, "Border must not intercept selection input")
 Equal(box:IsShown(), false, "Box must start hidden")
-Equal(#box.labels, 24, "Box must offer three columns of eight emote names")
+Equal(#box.labels, 36, "Box must offer four columns of nine emote names")
 local tokens = {
-    "APOLOGIZE", "BEG", "BOW", "BYE", "CHEER", "CLAP", "CRY", "BONK",
-    "DRINK", "FLEX", "GOLFCLAP", "HELLO", "HUG", "KISS", "KNEEL", "LAUGH",
-    "POINT", "ROAR", "RUDE", "SALUTE", "SHRUG", "SLEEP", "THANK", "WAVE",
+    "APOLOGIZE", "ATTACKTARGET", "BEG", "BLAME", "BOW", "BYE", "CHEER", "CLAP", "CRY",
+    "BONK", "DRINK", "FLEX", "FLIRT", "FOLLOWME", "GOLFCLAP", "HELLO", "HUG", "KISS",
+    "KNEEL", "LAUGH", "MERCY", "NO", "NOD", "OOM", "POINT", "ROAR", "RUDE",
+    "SALUTE", "SCARED", "SHRUG", "SILLY", "SLEEP", "TAUNT", "THANK", "WAVE", "YAWN",
 }
 local columns = {}
 for index, label in ipairs(box.labels) do
@@ -114,16 +115,17 @@ for index, label in ipairs(box.labels) do
     if index > 1 then assert(box.labels[index - 1].text < label.text, "Names must be alphabetically sorted") end
     local x = label.point[4]
     columns[x] = (columns[x] or 0) + 1
-    assert(columns[x] <= 8, "Columns must not contain more than eight entries")
+    assert(columns[x] <= 9, "Columns must not contain more than nine entries")
     assert(-label.point[5] > 0 and -label.point[5] < box.height, "Every name must fit inside the box")
 end
 local columnCount = 0
 for _ in pairs(columns) do columnCount = columnCount + 1 end
-Equal(columnCount, 3, "There must be exactly three columns")
+Equal(columnCount, 4, "There must be exactly four columns")
 
 local function Highlighted(selected)
     for index, highlight in ipairs(box.textures) do
-        Equal(highlight:IsShown(), index == selected, "Only the hovered row must highlight")
+        Equal(highlight:IsShown(), index == selected,
+            "Only the hovered row must highlight (selected " .. tostring(selected) .. ", highlight " .. index .. ")")
     end
 end
 
@@ -178,11 +180,11 @@ local function CancelAt(x, y, message)
     box.scripts.OnUpdate(box, 0.016)
     Highlighted(nil)
     ErzbaroneUI.Emotes:HandleBinding("up")
-    Equal(#performed, 24, message)
+    Equal(#performed, 36, message)
 end
 CancelAt(1, 1, "Borders must not select an emote")
 CancelAt(-1, 30, "Outside the box must cancel")
-local first, secondColumn = box.textures[1], box.textures[9]
+local first, secondColumn = box.textures[1], box.textures[10]
 CancelAt((first.point[4] + first.width + secondColumn.point[4]) / 2, 20,
     "Column gaps must not select an emote")
 CancelAt(20, box.height - 1, "Bottom border must cancel")
@@ -190,21 +192,21 @@ CancelAt(20, box.height - 1, "Bottom border must cancel")
 UIParent.scale = 0.75
 Open(600, 450)
 Equal(box.left, 812, "Placement must account for UI scale")
-Hover(24)
+Hover(35)
 ErzbaroneUI.Emotes:HandleBinding("up")
-Equal(performed[25], "WAVE", "Release must use current scaled cursor coordinates without a hover update")
+Equal(performed[37], "WAVE", "Release must use current scaled cursor coordinates without a hover update")
 Open(1920 * UIParent.scale, 0)
 Equal(box.left, UIParent.width - box.width, "Box must stay visible at the right edge")
 Equal(box.top, box.height, "Box must stay visible at the bottom edge")
 Hover(1)
 ErzbaroneUI.Emotes:HandleBinding("up")
-Equal(performed[26], "APOLOGIZE", "Selection must follow the actual clamped box position")
+Equal(performed[38], "APOLOGIZE", "Selection must follow the actual clamped box position")
 
 Open()
 Hover(2)
 box.scripts.OnEvent(box, "PLAYER_LEAVING_WORLD")
 ErzbaroneUI.Emotes:HandleBinding("up")
-Equal(#performed, 26, "Leaving the world must not perform an emote")
+Equal(#performed, 38, "Leaving the world must not perform an emote")
 Open()
 ErzbaroneUI.Emotes:HandleBinding("up")
 
@@ -224,10 +226,10 @@ else
 end
 binding()
 Equal(box:IsShown(), true, "Existing XML binding must open the text selection")
-Hover(8)
+Hover(10)
 environment.keystate = "up"
 binding()
-Equal(performed[27], "BONK", "Existing XML binding must execute the hovered name on release")
+Equal(performed[39], "BONK", "Existing XML binding must execute the hovered name on release")
 
 UIParent.scale = 1
 Open()
@@ -239,12 +241,12 @@ assert(box.width > originalWidth and box.height > originalHeight, "Larger text m
 for index, label in ipairs(box.labels) do
     Equal(label.fontSize, 24, "Font update must resize every emote name")
     Equal(label.fontFlags, "OUTLINE", "Font update must preserve native font flags")
-    assert(box.textures[index].width >= label:GetStringWidth() + 40, "Columns must fit the enlarged text and border padding")
+    assert(box.textures[index].width >= label:GetStringWidth() + 24, "Narrower columns must still fit the enlarged text")
     assert(box.textures[index].height >= label.fontSize + 10, "Hover rows must fit the enlarged text")
 end
-Hover(24)
+Hover(35)
 ErzbaroneUI.Emotes:HandleBinding("up")
-Equal(performed[28], "WAVE", "Release selection must follow the resized rows without a hover update")
+Equal(performed[40], "WAVE", "Release selection must follow the resized rows without a hover update")
 ErzbaroneUISettings.emoteFontSize = 10
 ErzbaroneUI.Emotes:Update()
 Equal(box.labels[1].fontSize, 10, "Minimum font size must be supported")
