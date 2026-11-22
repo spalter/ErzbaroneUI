@@ -93,6 +93,7 @@ local function IsEditModeActive()
     return EditModeManagerFrame and EditModeManagerFrame:IsEditModeActive()
 end
 
+--- Checks whether any shown child returned by GetChildren is under the mouse.
 local function IsChildHovered(...)
     for index = 1, select("#", ...) do
         local button = select(index, ...)
@@ -136,6 +137,7 @@ function ErzbaroneUI.MainBar:GetChatBottomInset()
     return 0
 end
 
+--- Returns the position choices consumed by the micro-menu settings dropdown.
 function ErzbaroneUI.MainBar:GetMicroMenuPositionOptions()
     return {
         { "besideBags", "Left of Bags" },

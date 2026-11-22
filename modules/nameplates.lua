@@ -8,6 +8,7 @@ local eventFrame
 local activeUnits = {}
 local healthTexts = {}
 
+--- Finds or creates the health label on Blizzard's nameplate health bar for this unit.
 local function GetHealthText(unit)
     if healthTexts[unit] then
         return healthTexts[unit]
@@ -33,6 +34,7 @@ local function GetHealthText(unit)
     return text
 end
 
+--- Hides and uncaches a unit's label when its nameplate is removed or no longer eligible.
 local function HideHealthText(unit)
     local text = healthTexts[unit]
     if text then
@@ -42,6 +44,7 @@ local function HideHealthText(unit)
     end
 end
 
+--- Displays abbreviated current health only for attackable units while the setting is enabled.
 local function UpdateUnit(unit)
     if not ErzbaroneUISettings.nameplateHealth then
         HideHealthText(unit)
@@ -62,6 +65,7 @@ local function UpdateUnit(unit)
     text:Show()
 end
 
+--- Tracks visible nameplate units and refreshes their labels on health or faction changes.
 local function OnEvent(_, event, unit)
     if event == "NAME_PLATE_UNIT_ADDED" then
         activeUnits[unit] = true

@@ -6,6 +6,7 @@ A reduced World of Warcraft Forever Interface
 
 Extract the `ErzbaroneUI` directory from the release zip into the `World of Warcraft\_forever_\Interface\AddOns\` directory.
 To open the configuration, select ErzbaroneUI in the minimap's AddOns menu, go to Game Menu → Options → AddOns → ErzbaroneUI or type `/eui`.
+Scroll the settings panel with the mouse wheel or scrollbar to reach all options.
 
 ### Via CurseForge
 
@@ -16,6 +17,7 @@ The addon is available on CurseForge too, search for `ErzbaroneUI` or [on their 
 - Auto sell grey items
 - Auto repair
 - Optional vignette effect
+- Optional neutral grey decorative frame artwork (disabled by default; requires a UI reload)
 - HDR options
 - Five second rule timer on the player mana bar
 - Optional swing timer spark on the player power bar for melee and ranged fighters
@@ -40,6 +42,10 @@ Hovering anywhere in a tracked quest entry brightens its title and objectives to
 Shift-left-click anywhere in a quest entry to untrack it instead of opening its details. Native quest-tracking restrictions still apply, and automatically shown contextual objectives may remain visible after removing a watch.
 All tracker action buttons are hidden. Use bags or action bars where available, or temporarily disable the option for tracker-only actions and quest offers. Setting changes wait until combat ends.
 
+Change **Neutral Frame Artwork** under **Visuals** in `/eui` and press **Apply**; the UI reloads automatically to apply or remove it. Supported decorative textures are desaturated to silver and grey, not brightened to white. The theme covers supported unit-frame borders, the action-bar gryphons, wyverns and backgrounds, micro-menu and bag-button artwork, the minimap ring and day/night dial, character equipment-slot borders and the stats divider, and shared borders and close buttons on the character, world map, spellbook, bags, bank, professions, encounter journal, merchant, quest, mail, friends, collections and auction-house frames, plus the map resize buttons. Not every Blizzard panel or decoration is covered. Map contents, portraits, item icons, alerts and gameplay colors are not intentionally changed. HUD artwork changes detected in combat are applied after combat ends.
+
+To customize the neutral artwork tint, edit `ErzbaroneUI.NeutralArt.Tint` in `modules\neutralart.lua` and reload the UI. Its three values multiply the existing red, green and blue channels: `{ 1, 1, 1 }` keeps the default silver, while lower values darken the corresponding channels. The original shading and opacity are preserved; this cannot brighten the artwork.
+
 ## Development
 
 Run the layout regression tests with `lua tests\actionlayout_test.lua`.
@@ -49,7 +55,10 @@ Gryphon anchors are maintained synchronously during native layout updates to avo
 Actual combat protection still needs testing in the Forever client.
 The layout tests also check micro menu position presets, scaled bag alignment, combat-deferred position changes and native placement while the experimental layout is disabled.
 
-Run the AddOns menu integration test with `lua tests\config_test.lua`.
+Run the AddOns menu and settings scroll-layout integration test with `lua tests\config_test.lua`.
+
+Run the neutral artwork tests with `lua tests\neutralhud_test.lua` and `lua tests\neutralpanels_test.lua`.
+They check opt-in and reload behavior, late-loaded artwork, border refreshes, combat deferral for HUD artwork and preservation of unrelated textures. Visual appearance and combat behavior still need testing in the Forever client.
 
 Run the minimalist objective tracker tests with `lua tests\objectives_test.lua`.
 They check native layout measurements, whole-entry quest interaction, Shift-click untracking and hover highlights, title/objective warm grey colors, action suppression, dynamic widgets, popup restoration, pooled-frame reuse, late initialization and combat-deferred toggles.

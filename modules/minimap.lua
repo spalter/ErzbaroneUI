@@ -171,11 +171,11 @@ local function Restore()
     MinimapCluster:SetHeaderUnderneath(IsHeaderUnderneath())
 end
 
---- Applies or restores the compact minimap based on the current setting.
 local FADE_SPEED = 6 -- alpha per second
 local fader = CreateFrame("Frame")
 local fadeAlpha = 1
 
+--- Updates an existing minimap button's alpha only when it has changed.
 local function SetButtonAlpha(button, alpha)
     if button and button:GetAlpha() ~= alpha then
         button:SetAlpha(alpha)

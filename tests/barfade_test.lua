@@ -58,6 +58,10 @@ function GetCursorInfo() return cursor end
 EditModeManagerFrame = { IsEditModeActive = function() return editMode end }
 MultiBarRight, MultiBarLeft = Bar(), Bar()
 ErzbaroneUISettings = { fadeRightBars = false }
+local registeredBackgrounds = {}
+ErzbaroneUI = { NeutralHUD = {
+    RegisterActionBarBackground = function(_, texture) registeredBackgrounds[texture] = true end,
+} }
 dofile(root .. "modules\\barfade.lua")
 
 ErzbaroneUI.BarFade:Initialize()
@@ -76,6 +80,7 @@ for _, bar in ipairs({ MultiBarRight, MultiBarLeft }) do
     end
     Equal(#bar.textures, 1, "Each vertical bar needs one backdrop")
     local texture = bar.textures[1]
+    Equal(registeredBackgrounds[texture], true, "Each backdrop must be registered with the neutral artwork module")
     Equal(texture.atlas, "UI-HUD-ActionBar-Frame", "Backdrop must match the main bar")
     Equal(texture.layer, "BACKGROUND", "Backdrop must draw behind buttons")
     Equal(texture.sublevel, -3, "Backdrop must use the main bar's draw order")

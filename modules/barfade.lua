@@ -61,6 +61,7 @@ local function UpdateBackground(bar, enabled)
         background:SetPoint("TOPLEFT", bar, "TOPLEFT", -6, 6)
         background:SetPoint("BOTTOMRIGHT", bar, "BOTTOMRIGHT", 4, -5)
         backgrounds[bar] = background
+        ErzbaroneUI.NeutralHUD:RegisterActionBarBackground(background)
         bar:SetAlpha(currentAlpha)
     end
     if background then

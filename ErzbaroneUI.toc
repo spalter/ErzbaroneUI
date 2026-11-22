@@ -18,12 +18,15 @@ modules\castbars.lua
 modules\threatglow.lua
 modules\castcount.lua
 modules\rangetint.lua
+modules\neutralart.lua
+modules\neutralhud.lua
 modules\barfade.lua
 modules\emotes.lua
 modules\actionlayout.lua
 modules\mainbar.lua
 modules\chat.lua
 modules\minimap.lua
+modules\neutralpanels.lua
 modules\objectives.lua
 modules\bags.lua
 modules\utils.lua

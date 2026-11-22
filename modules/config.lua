@@ -8,6 +8,7 @@ local defaults = {
     autoSellGreyItems = true,
     autoRepair = true,
     vignette = false,
+    neutralDecorations = false,
     fiveSecondRuleTimer = true,
     castCount = true,
     rangeTint = true,
@@ -91,6 +92,9 @@ local COLUMN_WIDTH = 300
 local COLUMN_GAP = 20
 local ROW_HEIGHT = 26
 local SECTION_GAP = 14
+local HEADER_DIVIDER_GAP = 4
+local DIVIDER_HEIGHT = 1
+local FIRST_ROW_GAP = 4
 
 --- Settings grouped into sections, each placed in one of two columns.
 local SECTIONS = {
@@ -111,6 +115,9 @@ local SECTIONS = {
             { "vignette", "Show Vignette Effect",
                 "Darkens the edges of the screen with a vignette overlay.",
                 function() ErzbaroneUI.Effects:UpdateVignette() end },
+            { "neutralDecorations", "Neutral Frame Artwork",
+                "Desaturates supported decorative Blizzard frame artwork to silver and grey. Applying this setting reloads the UI.",
+                kind = "neutralDecorations" },
         },
     },
     {
@@ -252,6 +259,7 @@ local function CreateSettingCheckbox(parent, key, label, tooltip, onChange, read
     text:SetWordWrap(false)
     text:SetText(label)
 
+    --- Synchronizes the checkbox with its setting or optional external value reader.
     local function Refresh(self)
         local value
         if readValue then
@@ -299,12 +307,14 @@ local function CreateSettingCheckbox(parent, key, label, tooltip, onChange, read
     return checkbox
 end
 
+--- Writes an HDR CVar through Blizzard's API and reports rejected changes.
 local function SetHDRCVar(name, value)
     if not C_CVar.SetCVar(name, value) then
         print("ErzbaroneUI: Could not change " .. name .. ".")
     end
 end
 
+--- Converts Blizzard's HDR output CVar to a checkbox value, or nil when unavailable.
 local function ReadHDROutput()
     local value = C_CVar.GetCVar("HDROutput")
     if value == "1" then return true end
@@ -330,6 +340,7 @@ local function CreateHDRSlider(parent, label, tooltip)
     slider:SetObeyStepOnDrag(true)
 
     local refreshing = false
+    --- Displays the actual HDR CVar while constraining the slider to its supported range.
     local function Refresh()
         local value = tonumber(C_CVar.GetCVar("HDRFactor"))
         if not value then
@@ -427,6 +438,7 @@ local function CreateEmoteBindingButton(parent, label, tooltip)
     local button = CreateFrame("Button", "ErzbaroneUIEmoteKeybinding", row, "UIPanelButtonTemplate")
     button:SetSize(170, 22)
     button:SetPoint("RIGHT", row, "RIGHT", -4, 0)
+    --- Refreshes the binding label when Blizzard reports keybinding changes.
     local function Refresh()
         local labels = {}
         for _, key in ipairs({ GetBindingKey("ERZBARONEUI_EMOTE_WHEEL") }) do
@@ -463,9 +475,9 @@ local function CreateSectionHeader(parent, anchor, offsetX, offsetY, title)
 
     local divider = parent:CreateTexture(nil, "ARTWORK")
     divider:SetColorTexture(1, 1, 1, 0.15)
-    divider:SetSize(COLUMN_WIDTH, 1)
-    divider:SetPoint("TOPLEFT", header, "BOTTOMLEFT", 0, -4)
-    return divider
+    divider:SetSize(COLUMN_WIDTH, DIVIDER_HEIGHT)
+    divider:SetPoint("TOPLEFT", header, "BOTTOMLEFT", 0, -HEADER_DIVIDER_GAP)
+    return divider, header:GetStringHeight()
 end
 
 --- Registers the ErzbaroneUI panel in the game's Options -> AddOns screen.
@@ -477,45 +489,67 @@ function ErzbaroneUI.Config:RegisterSettingsPanel()
     local panel = CreateFrame("Frame", "ErzbaroneUISettingsPanel")
     panel.name = "ErzbaroneUI"
 
-    local title = panel:CreateFontString(nil, "ARTWORK", "GameFontNormalLarge")
+    local category = Settings.RegisterCanvasLayoutCategory(panel, panel.name)
+    local neutralSetting = Settings.RegisterAddOnSetting(category, "ERZBARONEUI_NEUTRAL_DECORATIONS",
+        "neutralDecorations", ErzbaroneUISettings, Settings.VarType.Boolean, "Neutral Frame Artwork", false)
+    neutralSetting:SetCommitFlags(Settings.CommitFlag.Apply, Settings.CommitFlag.UIReload)
+
+    local scroll = CreateFrame("ScrollFrame", "ErzbaroneUISettingsScrollFrame", panel, "ScrollFrameTemplate")
+    scroll:SetPoint("TOPLEFT", panel, "TOPLEFT")
+    scroll:SetPoint("BOTTOMRIGHT", panel, "BOTTOMRIGHT", -22, 0)
+    scroll:EnableMouseWheel(true)
+    local content = CreateFrame("Frame", nil, scroll)
+    content:SetWidth(16 + 2 * COLUMN_WIDTH + COLUMN_GAP)
+    scroll:SetScrollChild(content)
+
+    local title = content:CreateFontString(nil, "ARTWORK", "GameFontNormalLarge")
     title:SetPoint("TOPLEFT", 16, -16)
     title:SetText("Erzbarone UI")
 
-    local subtitle = panel:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
+    local subtitle = content:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
     subtitle:SetPoint("TOPLEFT", title, "BOTTOMLEFT", 0, -6)
     subtitle:SetText("A World of Warcraft Forever Interface Improvement. Hover a setting for details.")
 
     -- Each column starts below the subtitle and stacks its sections downwards
+    local headingHeight = 16 + title:GetStringHeight() + 6 + subtitle:GetStringHeight()
     local columnAnchors = {
-        { frame = subtitle, x = 0 },
-        { frame = subtitle, x = COLUMN_WIDTH + COLUMN_GAP },
+        { frame = subtitle, x = 0, height = headingHeight },
+        { frame = subtitle, x = COLUMN_WIDTH + COLUMN_GAP, height = headingHeight },
     }
     local hdrControls = {}
 
     for _, section in ipairs(SECTIONS) do
         local column = columnAnchors[section.column]
         local isFirst = column.frame == subtitle
-        local anchor = CreateSectionHeader(panel, column.frame, isFirst and column.x or 0,
+        local anchor, headerHeight = CreateSectionHeader(content, column.frame, isFirst and column.x or 0,
             isFirst and -18 or -SECTION_GAP, section.title)
+        column.height = column.height + (isFirst and 18 or SECTION_GAP)
+            + headerHeight + HEADER_DIVIDER_GAP + DIVIDER_HEIGHT + FIRST_ROW_GAP
 
         local previous = anchor
         for index, setting in ipairs(section.settings) do
             local control
             if setting.kind == "hdrCheckbox" then
-                control = CreateSettingCheckbox(panel, setting[1], setting[2], setting[3], nil,
+                control = CreateSettingCheckbox(content, setting[1], setting[2], setting[3], nil,
                     ReadHDROutput, function(value) SetHDRCVar("HDROutput", value and "1" or "0") end)
                 hdrControls.hdroutput = control
             elseif setting.kind == "hdrSlider" then
-                control = CreateHDRSlider(panel, setting[2], setting[3])
+                control = CreateHDRSlider(content, setting[2], setting[3])
                 hdrControls.hdrfactor = control
             elseif setting.kind == "emoteBinding" then
-                control = CreateEmoteBindingButton(panel, setting[2], setting[3])
+                control = CreateEmoteBindingButton(content, setting[2], setting[3])
+            elseif setting.kind == "neutralDecorations" then
+                control = CreateSettingCheckbox(content, setting[1], setting[2], setting[3], nil,
+                    function() return neutralSetting:GetValue() end,
+                    function(value) neutralSetting:SetValue(value) end)
+                neutralSetting:SetValueChangedCallback(function() control:Refresh() end)
             elseif setting[5] then
-                control = CreateSettingDropdown(panel, setting[1], setting[2], setting[3], setting[4], setting[5])
+                control = CreateSettingDropdown(content, setting[1], setting[2], setting[3], setting[4], setting[5])
             else
-                control = CreateSettingCheckbox(panel, setting[1], setting[2], setting[3], setting[4])
+                control = CreateSettingCheckbox(content, setting[1], setting[2], setting[3], setting[4])
             end
-            control:SetPoint("TOPLEFT", previous, "BOTTOMLEFT", 0, index == 1 and -4 or 0)
+            control:SetPoint("TOPLEFT", previous, "BOTTOMLEFT", 0, index == 1 and -FIRST_ROW_GAP or 0)
+            column.height = column.height + control:GetHeight()
             previous = control
         end
 
@@ -531,7 +565,7 @@ function ErzbaroneUI.Config:RegisterSettingsPanel()
         column.x = 0
     end
 
-    local category = Settings.RegisterCanvasLayoutCategory(panel, panel.name)
+    content:SetHeight(math.max(columnAnchors[1].height, columnAnchors[2].height) + 16)
     Settings.RegisterAddOnCategory(category)
     self.Category = category
     self.Panel = panel
@@ -542,6 +576,7 @@ function ErzbaroneUI.Config:OpenSettings()
     Settings.OpenToCategory(self.Category:GetID())
 end
 
+--- Opens the addon settings from Blizzard's addon compartment entry.
 function ErzbaroneUI_OnAddonCompartmentClick()
     ErzbaroneUI.Config:OpenSettings()
 end

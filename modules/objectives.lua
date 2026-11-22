@@ -14,6 +14,7 @@ local eventFrame
 local StyleBlock
 local StyleWidgets
 
+--- Defers changes to protected tracker frames until Blizzard's combat lockdown ends.
 local function CanChange(frame)
     if InCombatLockdown() and frame.IsProtected and frame:IsProtected() then
         ErzbaroneUI.Objectives.PendingUpdate = true
@@ -22,6 +23,7 @@ local function CanChange(frame)
     return true
 end
 
+--- Gets the original-state record used to restore a tracker object.
 local function Save(frame)
     if not states[frame] then
         states[frame] = {}
@@ -29,6 +31,7 @@ local function Save(frame)
     return states[frame]
 end
 
+--- Installs a secure hook once per tracker object and method.
 local function Hook(frame, method, callback)
     if not frame[method] then
         return
@@ -40,6 +43,7 @@ local function Hook(frame, method, callback)
     end
 end
 
+--- Saves original anchors once before changing a tracker's layout.
 local function SavePoints(frame)
     local state = Save(frame)
     if not state.points then
@@ -50,6 +54,7 @@ local function SavePoints(frame)
     end
 end
 
+--- Saves an original tracker field before overriding it for the minimalist layout.
 local function SetField(frame, key, value)
     local state = Save(frame)
     state.fields = state.fields or {}
@@ -59,6 +64,8 @@ local function SetField(frame, key, value)
     frame[key] = value
 end
 
+--- Suppresses a tracker element while tracking native visibility changes for restoration.
+--- Hooks Blizzard visibility methods so hidden controls stay hidden while the style is active.
 local function Hide(frame)
     if not frame or not CanChange(frame) then
         return
@@ -68,6 +75,7 @@ local function Hide(frame)
         state.shown = frame:IsShown()
     end
     state.hidden = true
+    --- Records native visibility requests and keeps suppressed artwork hidden.
     local function OnVisibility(self, shown)
         local saved = states[self]
         if active and saved and saved.hidden and not changing then
@@ -87,6 +95,7 @@ local function Hide(frame)
     changing = false
 end
 
+--- Disables a frame's mouse handling while preserving native requests for restoration.
 local function RemoveMouse(frame)
     if not CanChange(frame) then
         return
@@ -109,6 +118,7 @@ local function RemoveMouse(frame)
     end)
 end
 
+--- Saves a frame script once before replacing its interaction handler.
 local function SaveScript(frame, script)
     local state = Save(frame)
     state.scripts = state.scripts or {}
@@ -117,6 +127,7 @@ local function SaveScript(frame, script)
     end
 end
 
+--- Removes embedded color codes so tracker text can use the configured neutral colors.
 local function PlainText(text)
     if type(text) == "string" then
         return (text:gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|cn[%w_]+:", ""):gsub("|r", ""))
@@ -124,6 +135,7 @@ local function PlainText(text)
     return text
 end
 
+--- Chooses title or objective color according to the containing block's hover state.
 local function GetStyledColor(state)
     if state.block and state.block.isHighlighted then
         return state.title and HOVER_TITLE_COLOR or HOVER_OBJECTIVE_COLOR
@@ -131,6 +143,8 @@ local function GetStyledColor(state)
     return state.title and TITLE_COLOR or OBJECTIVE_COLOR
 end
 
+--- Applies neutral text styling while retaining Blizzard text, colors and title fonts for restoration.
+--- Hooks native text updates so dynamic objectives keep the style.
 local function StyleText(fontString, title, block)
     if not fontString then
         return
@@ -175,6 +189,7 @@ local function StyleText(fontString, title, block)
     changing = false
 end
 
+--- Keeps a tracker container or module expanded and remembers its previous collapsed state.
 local function Expand(frame)
     local state = Save(frame)
     if state.collapsed == nil then
@@ -192,6 +207,7 @@ local function Expand(frame)
     end)
 end
 
+--- Styles an objective line and removes decorative markers and tracker-only completion controls.
 local function StyleLine(line)
     if not active or not line or not CanChange(line) then
         return
@@ -212,6 +228,7 @@ local function StyleLine(line)
     end
 end
 
+--- Returns a valid quest ID only for blocks belonging to Blizzard quest tracker modules.
 local function QuestID(block)
     local module = block.parentModule
     if module and (module == QuestObjectiveTracker or module == CampaignQuestObjectiveTracker
@@ -224,6 +241,8 @@ local function QuestID(block)
     end
 end
 
+--- Opens quest details or shift-click untracks a quest using Blizzard's quest APIs.
+--- Reports when native tracking restrictions prevent removal.
 local function HandleQuestClick(id, mouseButton)
     if mouseButton ~= "LeftButton" then
         return
@@ -246,6 +265,7 @@ local function HandleQuestClick(id, mouseButton)
     end
 end
 
+--- Resolves a quest block from its header button before handling a click.
 local function OnQuestClick(button, mouseButton)
     local id = QuestID(button:GetParent())
     if id then
@@ -253,6 +273,8 @@ local function OnQuestClick(button, mouseButton)
     end
 end
 
+--- Styles a block title and expands its click target across the quest entry.
+--- Uses the quest log title when available and preserves the original script and layout.
 local function StyleTitle(block)
     if not block.HeaderText then
         return
@@ -285,6 +307,8 @@ local function StyleTitle(block)
     end
 end
 
+--- Restyles quest popups and supplies a quest click target without retaining their action controls.
+--- Preserves native state and marks the module dirty if the popup height changes.
 local function StylePopup(block)
     local contents = block.Contents
     RemoveMouse(block)
@@ -304,6 +328,7 @@ local function StylePopup(block)
                 HandleQuestClick(block.questID, mouseButton)
             end
         end)
+        --- Refreshes popup text colors when its replacement click target is hovered.
         local function Highlight(highlighted)
             if active and not changing and states[block] then
                 SetField(block, "isHighlighted", highlighted)
@@ -341,6 +366,7 @@ local function StylePopup(block)
     end
 end
 
+--- Hides actionable controls inside tracker widget containers without stopping their updates.
 StyleWidgets = function(root)
     if not root then
         return
@@ -355,6 +381,8 @@ StyleWidgets = function(root)
     end
 end
 
+--- Styles an objective block and hooks its native layout updates to keep dynamic content styled.
+--- Uses Blizzard's block APIs and preserves essential widget containers.
 StyleBlock = function(block)
     if not active or not block or not CanChange(block) then
         return
@@ -420,6 +448,7 @@ StyleBlock = function(block)
     Hook(block, "OnLayout", StyleBlock)
 end
 
+--- Styles scenario stage artwork, fixed blocks and pooled spell frames when present.
 local function StyleScenario(module)
     local stage = module.StageBlock
     if stage then
@@ -444,6 +473,7 @@ local function StyleScenario(module)
     end
 end
 
+--- Styles a tracker module, keeps it expanded and hooks dynamically created blocks and widgets.
 local function StyleModule(module)
     if not active or not CanChange(module) then
         return
@@ -483,6 +513,8 @@ local function StyleModule(module)
     StyleScenario(module)
 end
 
+--- Restores saved tracker properties, scripts and layout when styling ends or a frame is released.
+--- A released pooled frame keeps its current visibility under Blizzard's control.
 local function Restore(frame, state, released)
     if state.fields then
         for key, value in pairs(state.fields) do frame[key] = value[1] end
@@ -513,6 +545,7 @@ local function Restore(frame, state, released)
     if state.shown ~= nil and not released then frame:SetShown(state.shown) end
 end
 
+--- Restores a released pooled frame and its tracked descendants before Blizzard reuses them.
 local function RestoreReleased(frame)
     if not active then
         return
@@ -529,6 +562,7 @@ local function RestoreReleased(frame)
     changing = false
 end
 
+--- Styles a tracker container and its modules while preserving provider-driven top padding.
 local function StyleContainer(container)
     if not active or not CanChange(container) then
         return
@@ -536,6 +570,7 @@ local function StyleContainer(container)
     Expand(container)
     Hide(container.Header)
     Hide(container.NineSlice)
+    --- Recalculates top padding from Blizzard's registered padding providers.
     local function UpdatePadding(self)
         if active then
             local padding = 0
@@ -551,6 +586,8 @@ local function StyleContainer(container)
     for _, module in ipairs(container.modules) do StyleModule(module) end
 end
 
+--- Applies or restores the minimalist tracker according to settings and Blizzard tracker readiness.
+--- Defers changes in combat and refreshes the tracker after updating saved state.
 function ErzbaroneUI.Objectives:Update()
     if not self.Initialized then
         self:Initialize()
@@ -594,6 +631,7 @@ function ErzbaroneUI.Objectives:Update()
     ObjectiveTrackerManager:UpdateAll()
 end
 
+--- Registers tracker loading and combat events, then applies the current setting.
 function ErzbaroneUI.Objectives:Initialize()
     if not self.Initialized then
         self.Initialized = true
