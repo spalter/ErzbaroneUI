@@ -40,6 +40,7 @@ frame:SetScript("OnEvent", function(_, event, name)
         ErzbaroneUI.Chat:Initialize()
         ErzbaroneUI.MainBar:Initialize()
         ErzbaroneUI.Minimap:Initialize()
+        ErzbaroneUI.Objectives:Initialize()
         ErzbaroneUI.Bags:Initialize()
     end
 

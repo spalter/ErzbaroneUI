@@ -110,6 +110,10 @@ local nameplateUpdates = 0
 ErzbaroneUI.Nameplates = {
     Update = function() nameplateUpdates = nameplateUpdates + 1 end,
 }
+local objectiveUpdates = 0
+ErzbaroneUI.Objectives = {
+    Update = function() objectiveUpdates = objectiveUpdates + 1 end,
+}
 local mainBarUpdates = 0
 dofile(root .. "modules\\mainbar.lua")
 ErzbaroneUI.MainBar.Update = function() mainBarUpdates = mainBarUpdates + 1 end
@@ -126,6 +130,16 @@ panel = ErzbaroneUI.Config.Panel
 local checkbox = frames.ErzbaroneUISetting_HDROutput
 local slider = frames.ErzbaroneUIHDRFactorSlider
 local nameplateHealth = frames.ErzbaroneUISetting_nameplateHealth
+local minimalistObjectives = assert(frames.ErzbaroneUISetting_minimalistObjectives)
+assert(not minimalistObjectives.checked, "Minimalist objectives must be opt-in")
+minimalistObjectives:SetChecked(true)
+minimalistObjectives.scripts.OnClick(minimalistObjectives)
+assert(ErzbaroneUISettings.minimalistObjectives and objectiveUpdates == 1,
+    "Enabling minimalist objectives must persist the setting and refresh the tracker")
+minimalistObjectives:SetChecked(false)
+minimalistObjectives.scripts.OnClick(minimalistObjectives)
+assert(not ErzbaroneUISettings.minimalistObjectives and objectiveUpdates == 2,
+    "Disabling minimalist objectives must request native tracker restoration")
 assert(panel.event == "CVAR_UPDATE")
 assert(#writes == 0, "Opening settings must not change HDR CVars")
 assert(not checkbox.checked and slider.value == 2)
@@ -233,10 +247,12 @@ assert(ErzbaroneUISettings.microMenuPosition == "aboveBags", "Initialization mus
 ErzbaroneUISettings.emoteFontSize = nil
 ErzbaroneUISettings.microMenuPosition = nil
 ErzbaroneUISettings.nameplateHealth = nil
+ErzbaroneUISettings.minimalistObjectives = nil
 ErzbaroneUI.Config:Initialize()
 assert(ErzbaroneUISettings.emoteFontSize == 12, "Missing font size must default to the existing text size")
 assert(ErzbaroneUISettings.microMenuPosition == "bottomLeft", "Missing menu position must default to left of gryphons")
 assert(not ErzbaroneUISettings.nameplateHealth, "Missing enemy nameplate setting must default to disabled")
+assert(ErzbaroneUISettings.minimalistObjectives == false, "Missing minimalist tracker setting must default to disabled")
 ErzbaroneUI.Config.Setup = nativeSetup
 
 print("config_test.lua: all assertions passed")

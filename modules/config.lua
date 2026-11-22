@@ -26,6 +26,7 @@ local defaults = {
     unitClassColors = true,
     hideBagNames = true,
     hideThreatGlow = false,
+    minimalistObjectives = false,
     emoteFontSize = 12,
 }
 
@@ -210,6 +211,15 @@ local SECTIONS = {
             { "fadeMinimapButtons", "Show Buttons on Mouseover",
                 "Hides the tracking, calendar and addon buttons until you move your mouse over the minimap. The calendar stays visible while you have pending invites.",
                 function() ErzbaroneUI.Minimap:Update() end },
+        },
+    },
+    {
+        column = 2,
+        title = "Objectives",
+        settings = {
+            { "minimalistObjectives", "Minimalist Objective Tracker",
+                "Uses muted warm grey, emphasized quest titles and darker warm grey objectives with their existing shadows, without levels, dashes, section banners or action buttons. Hover anywhere in a quest entry to brighten its title and objectives; click to open its quest-log details, or Shift-click to untrack it. Automatically shown objectives may remain visible. Keeps dynamic timers, progress bars and widgets. Use bags or action bars for quest items and spells where available. Disable this option temporarily for tracker-only actions or quest offers. Disabling restores Blizzard's tracker. Setting changes wait until combat ends.",
+                function() ErzbaroneUI.Objectives:Update() end },
         },
     },
     {

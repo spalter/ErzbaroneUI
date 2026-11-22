@@ -33,6 +33,12 @@ The addon is available on CurseForge too, search for `ErzbaroneUI` or [on their 
 - Micro menu position presets
 - Hides the bag names in the bag windows
 - Compact minimap until the minimap is hovered
+- Optional minimalist objective tracker with muted warm grey, outlined quest titles and darker warm grey objectives, retaining their existing shadows without levels, section banners, markers, dashes or action buttons (disabled by default)
+
+Enable **Minimalist Objective Tracker** under **Objectives** in `/eui`. It restyles Blizzard's tracker without changing its position, quest tracking, ordering or overflow behavior. Clicking anywhere in a quest entry opens its quest-log details; essential dynamic timers, progress bars and specialized widgets remain visible. The tracker stays expanded while enabled, and disabling restores its previous collapsed states and native presentation.
+Hovering anywhere in a tracked quest entry brightens its title and objectives to warm grey highlights; moving away restores the muted colors.
+Shift-left-click anywhere in a quest entry to untrack it instead of opening its details. Native quest-tracking restrictions still apply, and automatically shown contextual objectives may remain visible after removing a watch.
+All tracker action buttons are hidden. Use bags or action bars where available, or temporarily disable the option for tracker-only actions and quest offers. Setting changes wait until combat ends.
 
 ## Development
 
@@ -44,6 +50,10 @@ Actual combat protection still needs testing in the Forever client.
 The layout tests also check micro menu position presets, scaled bag alignment, combat-deferred position changes and native placement while the experimental layout is disabled.
 
 Run the AddOns menu integration test with `lua tests\config_test.lua`.
+
+Run the minimalist objective tracker tests with `lua tests\objectives_test.lua`.
+They check native layout measurements, whole-entry quest interaction, Shift-click untracking and hover highlights, title/objective warm grey colors, action suppression, dynamic widgets, popup restoration, pooled-frame reuse, late initialization and combat-deferred toggles.
+Visual appearance, available dynamic-objective types and actual combat protection still need testing in the Forever client.
 
 Run the enemy nameplate health display test with `lua tests\nameplates_test.lua`.
 

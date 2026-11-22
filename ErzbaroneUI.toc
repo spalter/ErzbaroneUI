@@ -1,7 +1,7 @@
 ## Interface: 16001
 ## Title: ErzbaroneUI
 ## Author: spalt_er
-## Version: 0.0.6
+## Version: 0.0.7
 ## Notes: A World of Warcraft Forever Interface Improvement
 ## SavedVariables: ErzbaroneUISettings
 ## IconTexture: Interface\AddOns\ErzbaroneUI\textures\round_icon.blp
@@ -24,6 +24,7 @@ modules\actionlayout.lua
 modules\mainbar.lua
 modules\chat.lua
 modules\minimap.lua
+modules\objectives.lua
 modules\bags.lua
 modules\utils.lua
 
