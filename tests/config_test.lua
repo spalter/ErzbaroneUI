@@ -169,6 +169,10 @@ local objectiveUpdates = 0
 ErzbaroneUI.Objectives = {
     Update = function() objectiveUpdates = objectiveUpdates + 1 end,
 }
+local worldMapUpdates = 0
+ErzbaroneUI.WorldMap = {
+    Update = function() worldMapUpdates = worldMapUpdates + 1 end,
+}
 local mainBarUpdates = 0
 dofile(root .. "modules\\mainbar.lua")
 ErzbaroneUI.MainBar.Update = function() mainBarUpdates = mainBarUpdates + 1 end
@@ -240,6 +244,14 @@ minimalistObjectives:SetChecked(false)
 minimalistObjectives.scripts.OnClick(minimalistObjectives)
 assert(not ErzbaroneUISettings.minimalistObjectives and objectiveUpdates == 2,
     "Disabling minimalist objectives must request native tracker restoration")
+local worldMapLevels = assert(frames.ErzbaroneUISetting_worldMapLevels)
+assert(not worldMapLevels.checked, "World map levels must be opt-in")
+worldMapLevels:SetChecked(true)
+worldMapLevels.scripts.OnClick(worldMapLevels)
+assert(ErzbaroneUISettings.worldMapLevels and worldMapUpdates == 1, "Enabling map levels must update immediately")
+worldMapLevels:SetChecked(false)
+worldMapLevels.scripts.OnClick(worldMapLevels)
+assert(not ErzbaroneUISettings.worldMapLevels and worldMapUpdates == 2, "Disabling map levels must update immediately")
 assert(panel.event == "CVAR_UPDATE")
 assert(#writes == 0, "Opening settings must not change HDR CVars")
 assert(not checkbox.checked and slider.value == 2)

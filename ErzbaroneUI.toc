@@ -26,6 +26,7 @@ modules\actionlayout.lua
 modules\mainbar.lua
 modules\chat.lua
 modules\minimap.lua
+modules\worldmap.lua
 modules\neutralpanels.lua
 modules\objectives.lua
 modules\bags.lua

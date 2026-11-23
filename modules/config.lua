@@ -20,6 +20,7 @@ local defaults = {
     fadeChatTabs = true,
     compactMinimap = true,
     fadeMinimapButtons = true,
+    worldMapLevels = false,
     unitFrameTexture = "classic",
     castBarTexture = "classic",
     nameplateHealth = false,
@@ -218,6 +219,15 @@ local SECTIONS = {
             { "fadeMinimapButtons", "Show Buttons on Mouseover",
                 "Hides the tracking, calendar and addon buttons until you move your mouse over the minimap. The calendar stays visible while you have pending invites.",
                 function() ErzbaroneUI.Minimap:Update() end },
+        },
+    },
+    {
+        column = 2,
+        title = "World Map",
+        settings = {
+            { "worldMapLevels", "Show Zone and Fishing Levels",
+                "Shows zone quest levels and fishing skill thresholds under world-map area names. Unlisted zones use the game's level range when available; fishing is omitted where data is unavailable.",
+                function() ErzbaroneUI.WorldMap:Update() end },
         },
     },
     {

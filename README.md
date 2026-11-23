@@ -35,48 +35,14 @@ The addon is available on CurseForge too, search for `ErzbaroneUI` or [on their 
 - Micro menu position presets
 - Hides the bag names in the bag windows
 - Compact minimap until the minimap is hovered
+- Optional world map hover labels with zone and fishing levels (disabled by default)
 - Optional minimalist objective tracker with muted warm grey, outlined quest titles and darker warm grey objectives, retaining their existing shadows without levels, section banners, markers, dashes or action buttons (disabled by default)
-
-Enable **Minimalist Objective Tracker** under **Objectives** in `/eui`. It restyles Blizzard's tracker without changing its position, quest tracking, ordering or overflow behavior. Clicking anywhere in a quest entry opens its quest-log details; essential dynamic timers, progress bars and specialized widgets remain visible. The tracker stays expanded while enabled, and disabling restores its previous collapsed states and native presentation.
-Hovering anywhere in a tracked quest entry brightens its title and objectives to warm grey highlights; moving away restores the muted colors.
-Shift-left-click anywhere in a quest entry to untrack it instead of opening its details. Native quest-tracking restrictions still apply, and automatically shown contextual objectives may remain visible after removing a watch.
-All tracker action buttons are hidden. Use bags or action bars where available, or temporarily disable the option for tracker-only actions and quest offers. Setting changes wait until combat ends.
-
-Change **Neutral Frame Artwork** under **Visuals** in `/eui` and press **Apply**; the UI reloads automatically to apply or remove it. Supported decorative textures are desaturated to silver and grey, not brightened to white. The theme covers supported unit-frame borders, the action-bar gryphons, wyverns and backgrounds, micro-menu and bag-button artwork, the minimap ring and day/night dial, character equipment-slot borders and the stats divider, and shared borders and close buttons on the character, world map, spellbook, bags, bank, professions, encounter journal, merchant, quest, mail, friends, collections and auction-house frames, plus the map resize buttons. Not every Blizzard panel or decoration is covered. Map contents, portraits, item icons, alerts and gameplay colors are not intentionally changed. HUD artwork changes detected in combat are applied after combat ends.
-
-To customize the neutral artwork tint, edit `ErzbaroneUI.NeutralArt.Tint` in `modules\neutralart.lua` and reload the UI. Its three values multiply the existing red, green and blue channels: `{ 1, 1, 1 }` keeps the default silver, while lower values darken the corresponding channels. The original shading and opacity are preserved; this cannot brighten the artwork.
 
 ## Development
 
-Run the layout regression tests with `lua tests\actionlayout_test.lua`.
-They reject all Edit Mode profile API calls and writes to native secure button references. They check native button reuse and modeled clicks/paging, adaptive action/auxiliary-bar placement and stacking, stable stance/shapeshift, pet and possession button positions during native combat reanchoring, divider suppression, immediate XP resizing and marker updates, runtime restoration, resets, reloads and combat deferral.
-Auxiliary buttons use stable anchors prepared outside combat while their native containers, visibility and click handlers remain unchanged. Grid and stacking changes during combat are applied after combat ends.
-Gryphon anchors are maintained synchronously during native layout updates to avoid briefly reverting to their default positions; tests check this without flushing queued updates.
-Actual combat protection still needs testing in the Forever client.
-The layout tests also check micro menu position presets, scaled bag alignment, combat-deferred position changes and native placement while the experimental layout is disabled.
-
-Run the AddOns menu and settings scroll-layout integration test with `lua tests\config_test.lua`.
-
-Run the neutral artwork tests with `lua tests\neutralhud_test.lua` and `lua tests\neutralpanels_test.lua`.
-They check opt-in and reload behavior, late-loaded artwork, border refreshes, combat deferral for HUD artwork and preservation of unrelated textures. Visual appearance and combat behavior still need testing in the Forever client.
-
-Run the minimalist objective tracker tests with `lua tests\objectives_test.lua`.
-They check native layout measurements, whole-entry quest interaction, Shift-click untracking and hover highlights, title/objective warm grey colors, action suppression, dynamic widgets, popup restoration, pooled-frame reuse, late initialization and combat-deferred toggles.
-Visual appearance, available dynamic-objective types and actual combat protection still need testing in the Forever client.
-
-Run the enemy nameplate health display test with `lua tests\nameplates_test.lua`.
-
-Run the cast-count update tests with `lua tests\castcount_test.lua`.
-They check disabled-state cleanup and idle behavior, mana-event filtering, coalesced updates, re-enabling and per-refresh spell-cost reuse across spells and macros, including free spells and changing costs.
-
-Run the vertical action-bar backdrop and mouseover fade tests with `lua tests\barfade_test.lua`.
-They also check that ready artwork is not rescanned each frame, while late artwork and new button lists are still initialized.
-
-Run the minimap button-fade tests with `lua tests\minimap_test.lua`.
-They check idle alpha-write suppression, hover and dropdown visibility, calendar invites, late-loaded buttons and runtime toggles.
-The layout regression tests also check idle alpha-write suppression for the micro menu and bag bar.
-
-Run the emote selection interaction tests with `lua tests\emotes_test.lua`.
+From the addon directory, run all Lua tests with `lua tests\run_test.lua`.
+The runner discovers `*_test.lua` files (excluding itself) and runs each in a separate process; it requires PowerShell.
+Visual appearance and actual combat protection still need testing in the Forever client.
 
 ## Screenshots
 
