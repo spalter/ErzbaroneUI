@@ -241,14 +241,22 @@ local function QuestID(block)
     end
 end
 
---- Opens quest details or shift-click untracks a quest using Blizzard's quest APIs.
+--- Opens the map quest log or shift-click untracks a quest using Blizzard's quest APIs.
 --- Reports when native tracking restrictions prevent removal.
 local function HandleQuestClick(id, mouseButton)
     if mouseButton ~= "LeftButton" then
         return
     end
     if not IsShiftKeyDown() then
-        QuestUtil.OpenQuestDetails(id)
+        if not QuestMapFrame_OpenToQuestDetails or not WorldMapFrame or not WorldMapFrame.QuestLog
+            or C_GameRules.IsGameRuleActive(Enum.GameRule.WorldMapDisabled) then
+            print("ErzbaroneUI: The world map quest log is unavailable.")
+            return
+        end
+        QuestMapFrame_OpenToQuestDetails(id)
+        if not WorldMapFrame:IsShown() or not WorldMapFrame.QuestLog:IsShown() then
+            print("ErzbaroneUI: The world map quest log could not be opened.")
+        end
     elseif not QuestUtil.CanRemoveQuestWatch() then
         print("ErzbaroneUI: Quest tracking cannot be changed right now.")
     elseif C_QuestLog.IsWorldQuest(id) then

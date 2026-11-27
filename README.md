@@ -36,7 +36,7 @@ The addon is available on CurseForge too, search for `ErzbaroneUI` or [on their 
 - Hides the bag names in the bag windows
 - Compact minimap until the minimap is hovered
 - Optional world map hover labels with zone and fishing levels (disabled by default)
-- Optional minimalist objective tracker with muted warm grey, outlined quest titles and darker warm grey objectives, retaining their existing shadows without levels, section banners, markers, dashes or action buttons (disabled by default)
+- Optional minimalist objective tracker with muted warm grey, outlined quest titles and darker warm grey objectives, retaining their existing shadows without levels, section banners, markers, dashes or action buttons (disabled by default). Left-click a quest to open it in the world map quest log; Shift-left-click to stop tracking it.
 
 ## Development
 

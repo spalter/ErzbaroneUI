@@ -126,6 +126,21 @@ end
 
 local opened, titles = {}, { [35] = "Clam Bait", [37] = "Catch of the Day", [80] = "A world objective" }
 local shiftDown, canUntrack, worldUntrackFails = false, true, false
+local mapDisabled, mapBlocked = false, false
+Enum = { GameRule = { WorldMapDisabled = 1 } }
+C_GameRules = { IsGameRuleActive = function(rule) return rule == Enum.GameRule.WorldMapDisabled and mapDisabled end }
+WorldMapFrame = Widget("Frame")
+WorldMapFrame.QuestLog = Widget("Frame", WorldMapFrame)
+WorldMapFrame:Hide()
+WorldMapFrame.QuestLog:Hide()
+function QuestMapFrame_OpenToQuestDetails(id)
+    opened[#opened + 1] = id
+    if not mapBlocked then
+        WorldMapFrame:Show()
+        WorldMapFrame.QuestLog:Show()
+        WorldMapFrame.QuestLog.selectedQuest = id
+    end
+end
 local questWatches, worldWatches = { [35] = true, [37] = true }, { [80] = true }
 local removedQuests, removedWorldQuests = {}, {}
 function IsShiftKeyDown() return shiftDown end
@@ -143,7 +158,7 @@ C_QuestLog = {
     end,
 }
 QuestUtil = {
-    OpenQuestDetails = function(id) opened[#opened + 1] = id end,
+    OpenQuestDetails = function() error("Old quest details interface used") end,
     CanRemoveQuestWatch = function() return canUntrack end,
     UntrackWorldQuest = function(id)
         if not worldUntrackFails then
@@ -428,7 +443,8 @@ assert(quest.HeaderButton:GetFrameLevel() > quest.usedLines[1]:GetFrameLevel(),
 quest.HeaderButton:GetScript("OnClick")(quest.HeaderButton, "RightButton")
 assert(#opened == 0, "Right clicks must not perform quest actions")
 quest.HeaderButton:GetScript("OnClick")(quest.HeaderButton, "LeftButton")
-assert(opened[1] == 35)
+assert(opened[1] == 35 and WorldMapFrame:IsShown() and WorldMapFrame.QuestLog.selectedQuest == 35,
+    "A quest click must open and select it in the world map quest log")
 other.usedBlocks[35].HeaderButton:GetScript("OnClick")(other.usedBlocks[35].HeaderButton, "LeftButton")
 assert(#opened == 1, "Numeric IDs from other modules must not be treated as quests")
 assert(WorldQuestObjectiveTracker.usedBlocks[80].HeaderText:GetText() == titles[80])
@@ -438,7 +454,30 @@ local objectiveButton = assert(EntryButtonAt(quest, quest.HeaderText:GetHeight()
 assert(objectiveButton == EntryButtonAt(quest, quest.HeaderText:GetHeight() / 2),
     "Moving between title and objectives must stay on the same hover surface")
 objectiveButton:GetScript("OnClick")(objectiveButton, "LeftButton")
-assert(opened[#opened] == 35, "Clicking objective text must open the same quest-log details as the title")
+assert(opened[#opened] == 35 and WorldMapFrame:IsShown() and WorldMapFrame.QuestLog.selectedQuest == 35,
+    "Clicking objective text with the map open must select the quest without closing the map")
+local worldButton = WorldQuestObjectiveTracker.usedBlocks[80].HeaderButton
+worldButton:GetScript("OnClick")(worldButton, "LeftButton")
+assert(opened[#opened] == 80 and WorldMapFrame.QuestLog.selectedQuest == 80,
+    "World quest clicks must select the current quest in the map")
+
+local mapErrors, printBeforeMap = {}, print
+print = function(message) mapErrors[#mapErrors + 1] = message end
+local openMapQuest = QuestMapFrame_OpenToQuestDetails
+local openedBeforeErrors = #opened
+QuestMapFrame_OpenToQuestDetails = nil
+objectiveButton:GetScript("OnClick")(objectiveButton, "LeftButton")
+QuestMapFrame_OpenToQuestDetails, mapDisabled = openMapQuest, true
+objectiveButton:GetScript("OnClick")(objectiveButton, "LeftButton")
+assert(#opened == openedBeforeErrors, "An unavailable or disabled map must not invoke the map helper")
+mapDisabled, mapBlocked = false, true
+WorldMapFrame:Hide()
+WorldMapFrame.QuestLog:Hide()
+objectiveButton:GetScript("OnClick")(objectiveButton, "LeftButton")
+mapBlocked = false
+print = printBeforeMap
+assert(#mapErrors == 3 and #opened == openedBeforeErrors + 1 and opened[#opened] == 35,
+    "Missing, disabled, and blocked map interfaces must be reported without using the old quest interface")
 local openedBeforeShift = #opened
 shiftDown = true
 objectiveButton:GetScript("OnClick")(objectiveButton, "RightButton")
@@ -447,7 +486,6 @@ assert(#removedQuests == 0 and #removedWorldQuests == 0, "Shift-right-click and 
 objectiveButton:GetScript("OnClick")(objectiveButton, "LeftButton")
 assert(removedQuests[1] == 35 and not questWatches[35] and #opened == openedBeforeShift,
     "Shift-clicking objective text must remove its quest watch without opening details")
-local worldButton = WorldQuestObjectiveTracker.usedBlocks[80].HeaderButton
 worldButton:GetScript("OnClick")(worldButton, "LeftButton")
 assert(removedWorldQuests[1] == 80 and not worldWatches[80] and #opened == openedBeforeShift,
     "World quests must use the native world-quest untracking helper")
@@ -540,7 +578,8 @@ ObjectiveTrackerManager:UpdateAll()
 assert(quest.HeaderText:GetText() == titles[37], "A reused block must not retain a previous POI quest identity")
 assert(quest.HeaderButton.points[2][2] == quest and quest.HeaderButton:GetFrameLevel() > quest.usedLines[1]:GetFrameLevel())
 quest.HeaderButton:GetScript("OnClick")(quest.HeaderButton, "LeftButton")
-assert(opened[#opened] == 37, "Reused title buttons must target the current quest")
+assert(opened[#opened] == 37 and WorldMapFrame.QuestLog.selectedQuest == 37,
+    "Reused title buttons must target the current quest in the map")
 QuestObjectiveTracker.usedBlocks[37] = nil
 ObjectiveTrackerManager:ReleaseFrame(quest)
 QuestObjectiveTracker.usedBlocks[35], QuestObjectiveTracker.render = quest, nativeRender
@@ -593,7 +632,8 @@ titleButton:GetScript("OnLeave")(titleButton)
 AssertTextColor(popup.Contents.QuestName, true)
 AssertTextColor(popup.Contents.TopText)
 titleButton:GetScript("OnClick")(titleButton, "LeftButton")
-assert(opened[#opened] == 37, "Accepted popup quest titles must open quest details rather than complete the quest")
+assert(opened[#opened] == 37 and WorldMapFrame.QuestLog.selectedQuest == 37,
+    "Accepted popup quest titles must open map details rather than complete the quest")
 
 local provider = { GetTopPadding = function() return 17 end }
 ObjectiveTrackerFrame.topPaddingProviders = { [provider] = true }
